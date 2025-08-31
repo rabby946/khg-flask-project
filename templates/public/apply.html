@@ -1,0 +1,167 @@
+{% extends "public/base.html" %}
+
+{% block title %}Apply for Membership | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Page-specific styles for the application form */
+  .apply-container {
+    max-width: 768px;
+    margin: 1rem auto;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2.5rem 3rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
+  .apply-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .apply-header h1 {
+    font-size: 2.25rem; /* 36px */
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .apply-header p {
+    font-size: 1.125rem; /* 18px */
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Form styling */
+  .apply-form {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"],
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    font-family: var(--font-sans);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+  }
+
+  /* Custom file input */
+  .form-group input[type="file"] {
+    font-size: 0.95rem;
+  }
+  .form-group input[type="file"]::file-selector-button {
+    background-color: var(--border-subtle);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 1rem;
+    transition: background-color 0.2s ease;
+  }
+  .form-group input[type="file"]::file-selector-button:hover {
+    background-color: var(--border);
+  }
+
+  .submit-button {
+    width: 100%;
+    background: var(--brand);
+    color: white;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .submit-button:hover {
+    background: var(--brand-dark);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .apply-container {
+      padding: 2rem 1.5rem;
+    }
+    .apply-header h1 {
+      font-size: 1.8rem;
+    }
+    .apply-header p {
+      font-size: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="apply-container">
+  <div class="apply-header">
+    <h1>Membership Application</h1>
+    <p>Complete the form below to apply for membership with KHG. We're excited to have you join our community.</p>
+  </div>
+
+  <form method="POST" action="/member/apply" enctype="multipart/form-data" class="apply-form">
+    <div class="form-group">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required placeholder="e.g., Jane Doe">
+    </div>
+
+    <div class="form-group">
+      <label for="address">Full Address</label>
+      <textarea id="address" name="address" rows="3" required placeholder="123 Main Street, City, Country"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" required placeholder="you@example.com">
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <input type="text" id="phone" name="phone" required placeholder="+1 (555) 123-4567">
+    </div>
+
+    <div class="form-group">
+      <label for="nid_number">National ID (NID) Number</label>
+      <input type="text" id="nid_number" name="nid_number" required placeholder="Enter your NID number">
+    </div>
+
+    <div class="form-group">
+      <label for="oath_file">Upload Signed Oath Paper</label>
+      <input type="file" id="oath_file" name="oath_file" accept="application/pdf,image/jpeg,image/png" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Create a Password</label>
+      <input type="password" id="password" name="password" required placeholder="Choose a strong password">
+    </div>
+
+    <button type="submit" class="submit-button">Submit Application</button>
+  </form>
+</div>
+{% endblock %}

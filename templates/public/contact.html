@@ -1,0 +1,32 @@
+{% extends "public/base.html" %}
+
+{% block title %}Contact Us | KHG{% endblock %}
+
+{% block content %}
+<section style="max-width:700px; margin:2rem auto; padding:1rem;">
+  <h1 style="font-size:2rem; font-weight:700; margin-bottom:1rem; text-align:center;">Contact Us</h1>
+  <p style="text-align:center; color:#475569; margin-bottom:2rem;">We would love to hear from you! Fill out the form below and we will get back to you.</p>
+
+  <form method="POST" action="/contact" style="display:flex; flex-direction:column; gap:1rem;">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required style="padding:0.6rem; border-radius:8px; border:1px solid #cbd5e1;">
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required style="padding:0.6rem; border-radius:8px; border:1px solid #cbd5e1;">
+
+    <label for="subject">Subject:</label>
+    <input type="text" id="subject" name="subject" required style="padding:0.6rem; border-radius:8px; border:1px solid #cbd5e1;">
+
+    <label for="message">Message:</label>
+    <textarea id="message" name="message" rows="4" required style="padding:0.6rem; border-radius:8px; border:1px solid #cbd5e1;"></textarea>
+
+    <button type="submit" style="background:#0ea5e9; color:#fff; padding:0.75rem; border:none; border-radius:12px; font-weight:600; cursor:pointer;">Send Message</button>
+  </form>
+
+  <div style="margin-top:2rem; text-align:center; color:#475569;">
+    <p>Email: support@khg.org</p>
+    <p>Phone: +880 1234 567890</p>
+    <p>Address: 123 KHG Street, Dhaka, Bangladesh</p>
+  </div>
+</section>
+{% endblock %}

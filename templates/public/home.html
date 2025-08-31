@@ -1,0 +1,58 @@
+{% extends "public/base.html" %}
+
+{% block title %}Home | KHG{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div style="text-align:center; padding: 3rem 1rem;">
+    <h1 style="font-size:2.25rem; font-weight:700; margin-bottom:1rem;">
+      Welcome to Korje Hasanah Group (KHG)
+    </h1>
+    <p style="max-width:720px; margin:0 auto; font-size:1.125rem; color:#475569;">
+      An ethical community-driven microfinance platform where members support one another with
+      interest-free microloans. Together, we build trust, share resources, and grow stronger.
+    </p>
+    <div style="margin-top:1.75rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+      <a href="/apply" style="background:#0ea5e9; color:#fff; text-decoration:none; padding:0.75rem 1.5rem; border-radius:12px; font-weight:600;">
+        Apply for Membership
+      </a>
+      <a href="/about" style="background:#f1f5f9; color:#0f172a; text-decoration:none; padding:0.75rem 1.5rem; border-radius:12px; font-weight:600;">
+        Learn More
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="features" style="padding:2.5rem 1rem; max-width:1100px; margin:0 auto;">
+  <h2 style="font-size:1.75rem; font-weight:700; margin-bottom:1.5rem; text-align:center;">
+    Why Join KHG?
+  </h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem;">
+    <div style="border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+      <h3 style="font-size:1.25rem; font-weight:600; margin-bottom:0.5rem;">Interest-Free Microloans</h3>
+      <p style="color:#475569;">Members can borrow from the community fund without paying interest, ensuring fairness and equity.</p>
+    </div>
+    <div style="border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+      <h3 style="font-size:1.25rem; font-weight:600; margin-bottom:0.5rem;">Community Voting</h3>
+      <p style="color:#475569;">Loan approvals are done democratically — members vote on applications for full transparency.</p>
+    </div>
+    <div style="border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+      <h3 style="font-size:1.25rem; font-weight:600; margin-bottom:0.5rem;">Transparency & Trust</h3>
+      <p style="color:#475569;">All fund histories and loan activities are visible to members, ensuring honesty and accountability.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta" style="background:#f0f9ff; padding:3rem 1rem; text-align:center;">
+  <h2 style="font-size:1.75rem; font-weight:700; margin-bottom:1rem;">Be Part of the Change</h2>
+  <p style="font-size:1.125rem; max-width:680px; margin:0 auto; color:#334155;">
+    Join a growing community dedicated to ethical finance. Whether you’re here to support or to seek help,
+    KHG welcomes you.
+  </p>
+  <div style="margin-top:1.5rem;">
+    <a href="/apply" style="background:#0ea5e9; color:#fff; text-decoration:none; padding:0.75rem 1.5rem; border-radius:12px; font-weight:600;">
+      Become a Member Today
+    </a>
+  </div>
+</section>
+{% endblock %}

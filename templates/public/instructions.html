@@ -1,0 +1,176 @@
+{% extends "public/base.html" %}
+
+{% block title %}Instructions | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Page-specific styles for the instructions content */
+  .instructions-container {
+    max-width: 900px;
+    margin: 1rem auto;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2.5rem 3rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
+  .instructions-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .instructions-header h1 {
+    font-size: 2.25rem; /* 36px */
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .instructions-header p {
+    font-size: 1.125rem; /* 18px */
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Custom styled ordered list */
+  .steps-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    counter-reset: instructions-counter;
+  }
+  .steps-list li {
+    counter-increment: instructions-counter;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    line-height: 1.7;
+    font-size: 1rem;
+    position: relative;
+  }
+  /* Add padding between list items */
+  .steps-list li + li {
+    margin-top: 1.5rem;
+  }
+  /* Custom number circle */
+  .steps-list li::before {
+    content: counter(instructions-counter);
+    background: var(--brand);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevents the circle from shrinking */
+    margin-top: 2px;
+  }
+  
+  .steps-list li strong {
+    color: var(--text);
+  }
+  .steps-list li em {
+    color: var(--brand-dark);
+    font-style: normal;
+    font-weight: 500;
+  }
+  
+  .cta-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .cta-button {
+    display: inline-block;
+    background: var(--brand);
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s ease;
+  }
+  .cta-button:hover {
+    background: var(--brand-dark);
+    color: white; /* Ensure text color stays white on hover */
+    text-decoration: none;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .instructions-container {
+      padding: 2rem 1.5rem;
+    }
+    .instructions-header h1 {
+      font-size: 1.8rem;
+    }
+    .instructions-header p {
+      font-size: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="instructions-container">
+  <div class="instructions-header">
+    <h1>How to Use the KHG Platform</h1>
+    <p>
+      Please read the following instructions carefully to make the most out of your membership and our services.
+    </p>
+  </div>
+
+  <ol class="steps-list">
+    <li>
+      <div>
+        <strong>Membership Application:</strong> Navigate to the <em>Apply Membership</em> page and fill out the form with your accurate details. Your information is secure with us.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Approval Process:</strong> Once submitted, your application will be reviewed by our admin team. You will receive an email and a dashboard notification upon approval.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Accessing Your Dashboard:</strong> After approval, log in to access your personal dashboard. Here you can view your membership history, active loans, and payment schedules.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Applying for a Loan:</strong> From your dashboard, go to the <em>Loan Application</em> section, fill out your request, and submit. Ensure all required fields are completed for faster processing.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Voting on Loans:</strong> As a member with voting rights, you can review pending loan applications from other members and cast your vote, contributing to our transparent, community-driven process.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Loan Repayment:</strong> Keep track of your active loans in your dashboard. Timely repayments are crucial for maintaining a good standing within the community and improving your member score.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Stay Updated:</strong> Check your dashboard regularly for notifications regarding application status, payment reminders, and important community announcements.
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Contact Support:</strong> If you encounter any issues or have questions, please use the <em>Contact</em> page to reach out to our dedicated support team.
+      </div>
+    </li>
+  </ol>
+
+  <div class="cta-footer">
+    <a href="/apply" class="cta-button">
+      Proceed to Application
+    </a>
+  </div>
+</div>
+{% endblock %}
