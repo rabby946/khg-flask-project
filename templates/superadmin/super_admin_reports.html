@@ -1,0 +1,109 @@
+{% extends "superadmin/base.html" %}
+
+{% block super_admin_content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Reports & Analytics</h2>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Donations</h5>
+                    <p class="card-text fs-4">{{ total_donations }} BDT</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Loans Given</h5>
+                    <p class="card-text fs-4">{{ total_loans }} BDT</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Loans</h5>
+                    <p class="card-text fs-4">{{ pending_loans }} BDT</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Members</h5>
+                    <p class="card-text fs-4">{{ total_members }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Donations Over Time</div>
+                <div class="card-body">
+                    <canvas id="donationChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">Loans Repayment Status</div>
+                <div class="card-body">
+                    <canvas id="loanChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Donation Chart
+    const donationCtx = document.getElementById('donationChart').getContext('2d');
+    const donationChart = new Chart(donationCtx, {
+        type: 'line',
+        data: {
+            labels: {{ donation_labels|safe }},
+            datasets: [{
+                label: 'Donations Over Time (BDT)',
+                data: {{ donation_values|safe }},
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Loan Repayment Chart
+    const loanCtx = document.getElementById('loanChart').getContext('2d');
+    const loanChart = new Chart(loanCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Repaid', 'Pending'],
+            datasets: [{
+                data: [{{ repaid_loans }}, {{ pending_loans_count }}],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endblock %}

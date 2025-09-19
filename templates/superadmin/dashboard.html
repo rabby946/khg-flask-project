@@ -1,0 +1,87 @@
+{% extends "superadmin/base.html" %}
+
+{% block super_admin_content %}
+<div class="container-fluid">
+  <h2 class="mb-4">Dashboard</h2>
+
+  <!-- Overview cards -->
+  <div class="row g-3 mb-4">
+    <!-- Total Funds -->
+    <div class="col-md-3">
+      <div class="card text-white bg-primary h-100">
+        <div class="card-body">
+          <h5 class="card-title">Total Funds</h5>
+          <p class="card-text fs-4">{{ total_funds }} BDT</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Members -->
+    <div class="col-md-3">
+      <div class="card text-white bg-success h-100">
+        <div class="card-body">
+          <h5 class="card-title">Total Members</h5>
+          <p class="card-text fs-4">{{ total_members }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Membership Applications -->
+    <div class="col-md-3">
+      <div class="card text-white bg-warning h-100">
+        <div class="card-body">
+          <h5 class="card-title">Pending Applications</h5>
+          <p class="card-text fs-4">{{ pending_applications }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Admins -->
+    <div class="col-md-3">
+      <div class="card text-white bg-danger h-100">
+        <div class="card-body">
+          <h5 class="card-title">Admins</h5>
+          <p class="card-text fs-4">{{ total_admins }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="row g-3">
+    <div class="col-md-4">
+      <a href="{{ url_for('superadmin.manage_admins') }}" class="text-decoration-none">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h5>Manage Admins</h5>
+            <p>View, add, or remove admins</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{{ url_for('superadmin.view_audit_logs') }}" class="text-decoration-none">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h5>Audit Logs</h5>
+            <p>Monitor all critical actions</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{{ url_for('superadmin.super_admin_reports') }}" class="text-decoration-none">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h5>Reports & Analytics</h5>
+            <p>View system insights and statistics</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
