@@ -27,8 +27,7 @@ def register_blueprints(app):
     app.register_blueprint(member_app, url_prefix="/member")
     app.register_blueprint(admin_app, url_prefix="/admin")
     app.register_blueprint(superadmin_app, url_prefix="/superadmin")
-
+app = create_app()
 if __name__ == "__main__":
-    app = create_app()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
