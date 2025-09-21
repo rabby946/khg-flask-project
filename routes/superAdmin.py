@@ -12,7 +12,7 @@ def login(secret_link):
 
     if request.method == "POST":
         password = request.form.get("sadmin-password")
-        if password == current_app.config.get("SUPERADMIN_LINK"):
+        if password == current_app.config.get("SUPERADMIN_PASSWORD"):
             session["superadmin_logged_in"] = True
             flash("Login successful!", "success")
             return redirect(url_for("superadmin.dashboard"))  

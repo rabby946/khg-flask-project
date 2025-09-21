@@ -21,6 +21,12 @@ def home():
 def instructions():
     return render_template('public/instructions.html')
 
+@public_app.route("/privacy")
+def privacy():
+    return render_template("public/privacy.html")
+@public_app.route("/terms")
+def terms():
+    return render_template("public/terms.html")
 
 @public_app.route('/apply', methods=['GET', 'POST'])
 def apply_membership():
@@ -99,7 +105,11 @@ def about():
 @public_app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        name = request.form.ge
+        name = request.form.get("name")
+        email  = request.form.get("email")
+        subject = request.form.get("subject")
+        message = request.form.get("message")
+        print(name, email, subject, message)
     return render_template("public/contact.html")
 @public_app.route("/login")
 def login():
