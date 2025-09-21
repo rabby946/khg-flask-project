@@ -1,81 +1,142 @@
 from flask import Blueprint, render_template, current_app, request, redirect, url_for, flash, session
+from extensions import db
+from models import Admin, Member, MembershipApplication, AuditLog, Donation, Loan, LoanApplication
 
 superadmin_app = Blueprint("superadmin", __name__, url_prefix="/superadmin")
 
 
-# Secret login route (GET + POST)
+# ------------------ LOGIN ------------------
 @superadmin_app.route("/<secret_link>", methods=["GET", "POST"])
 def login(secret_link):
-    # Check if URL secret matches
     if secret_link != current_app.config.get("SUPERADMIN_LINK"):
         return "Forbidden", 403
 
     if request.method == "POST":
         password = request.form.get("sadmin-password")
-        if password == current_app.config.get("SUPERADMIN_PASSWORD"):
+        if password == current_app.config.get("SUPERADMIN_PASSWORD"):  # ✅ match your config variable
             session["superadmin_logged_in"] = True
             flash("Login successful!", "success")
-            return redirect(url_for("superadmin.dashboard"))  
+            return redirect(url_for("superadmin.dashboard"))
         else:
             flash("Invalid password!", "danger")
+
     return render_template("public/superlogin.html")
 
+
+# ------------------ DASHBOARD ------------------
 @superadmin_app.route("/")
 @superadmin_app.route("/dashboard")
 def dashboard():
     if not session.get("superadmin_logged_in"):
         flash("You are not logged in brother")
         return redirect(url_for("public.home"))
-    return render_template("superadmin/dashboard.html", total_funds = 0, total_members = 0, pending_applications = 0, total_admins=0)
+
+    total_funds = db.session.query(db.func.sum(Donation.amount)).scalar() or 0
+    total_members = Member.query.count()
+    pending_applications = MembershipApplication.query.filter_by(status="pending").count()
+    total_admins = Admin.query.count()
+
+    return render_template(
+        "superadmin/dashboard.html",
+        total_funds=total_funds,
+        total_members=total_members,
+        pending_applications=pending_applications,
+        total_admins=total_admins
+    )
+
+
+# ------------------ LOGOUT ------------------
 @superadmin_app.route("/logout")
 def logout():
-    if not session.get("superadmin_logged_in"):
-        flash("You are not logged in brother")
-        return redirect(url_for("public.home"))
     session.pop("superadmin_logged_in", None)
-    flash("logged out successfully")
+    flash("Logged out successfully")
     return redirect(url_for("public.home"))
 
-@superadmin_app.route("/add_admin")
-def add_admin():
-    if not session.get("superadmin_logged_in"):
-        flash("You are not logged in brother")
-        return redirect(url_for("public.home"))
-    return "working add admin"
 
-@superadmin_app.route("/delete_admin")
-def delete_admin():
-    if not session.get("superadmin_logged_in"):
-        flash("You are not logged in brother")
-        return redirect(url_for("public.home"))
-    return "working delete admin"
-
+# ------------------ MANAGE ADMINS ------------------
 @superadmin_app.route("/manage_admins")
 def manage_admins():
     if not session.get("superadmin_logged_in"):
         flash("You are not logged in brother")
         return redirect(url_for("public.home"))
-    admins = []
+
+    admins = Admin.query.all()
     return render_template("superadmin/manage_admins.html", admins=admins)
 
+
+@superadmin_app.route("/add_admin", methods=["GET", "POST"])
+def add_admin():
+    if not session.get("superadmin_logged_in"):
+        flash("You are not logged in brother")
+        return redirect(url_for("public.home"))
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password_hash = request.form.get("password_hash")  # 🔐 hash it in production
+
+        new_admin = Admin(username=username, password_hash=password_hash, role="admin")
+        db.session.add(new_admin)
+        db.session.commit()
+
+        flash("Admin added successfully!", "success")
+        return redirect(url_for("superadmin.manage_admins"))
+
+    return render_template("superadmin/add_admin.html")
+
+
+@superadmin_app.route("/delete_admin/<int:admin_id>", methods=["POST"])
+def delete_admin(admin_id):
+    if not session.get("superadmin_logged_in"):
+        flash("You are not logged in brother")
+        return redirect(url_for("public.home"))
+
+    admin = Admin.query.get_or_404(admin_id)
+    db.session.delete(admin)
+    db.session.commit()
+
+    flash("Admin deleted successfully!", "success")
+    return redirect(url_for("superadmin.manage_admins"))
+
+
+# ------------------ AUDIT LOGS ------------------
 @superadmin_app.route("/view_audit_logs")
 def view_audit_logs():
     if not session.get("superadmin_logged_in"):
         flash("You are not logged in brother")
         return redirect(url_for("public.home"))
-    view_audit_logs = []
-    return render_template("superadmin/view_audit_logs.html", audit_logs=view_audit_logs)
 
+    audit_logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
+    return render_template("superadmin/view_audit_logs.html", audit_logs=audit_logs)
+
+
+# ------------------ REPORTS ------------------
 @superadmin_app.route("/super_admin_reports")
 def super_admin_reports():
     if not session.get("superadmin_logged_in"):
         flash("You are not logged in brother")
         return redirect(url_for("public.home"))
-    donation_labels = []
-    donation_values = []
-    return render_template("superadmin/super_admin_reports.html",
-                       total_donations=0, total_members=0, total_loans=0,
-                       pending_loans=0, donation_labels=donation_labels,
-                       donation_values=donation_values, repaid_loans=0,
-                       pending_loans_count=0)
 
+    total_donations = db.session.query(db.func.sum(Donation.amount)).scalar() or 0
+    total_members = Member.query.count()
+    total_loans = Loan.query.count()
+    pending_loans = LoanApplication.query.filter_by(status="pending").count()
+    repaid_loans = Loan.query.filter_by(status="paid").count()
+    pending_loans_count = Loan.query.filter_by(status="ongoing").count()
+
+    # For charts
+    donation_data = db.session.query(Donation.donation_type, db.func.sum(Donation.amount)) \
+                              .group_by(Donation.donation_type).all()
+    donation_labels = [row[0] for row in donation_data]
+    donation_values = [float(row[1]) for row in donation_data]
+
+    return render_template(
+        "superadmin/super_admin_reports.html",
+        total_donations=total_donations,
+        total_members=total_members,
+        total_loans=total_loans,
+        pending_loans=pending_loans,
+        donation_labels=donation_labels,
+        donation_values=donation_values,
+        repaid_loans=repaid_loans,
+        pending_loans_count=pending_loans_count
+    )

@@ -1,221 +1,224 @@
 {% extends "public/base.html" %}
 
+{% block title %}Login Portal | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+    main {
+        padding: 0 !important;
+        max-width: none;
+        animation: none;
+    }
+
+    .login-portal-wrapper {
+        font-family: var(--font-sans);
+        min-height: calc(100dvh - 128px);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        perspective: 1500px;
+    }
+
+    /* Animated Gradient Background */
+    .login-portal-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(-45deg, #f5f0ff, #feeded, #e3fafe, #ecffed);
+        background-size: 400% 400%;
+        animation: gradientBG 18s ease infinite;
+        z-index: 1;
+    }
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .login-card-scene {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 420px;
+        height: 530px;
+    }
+    .login-card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+    .login-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+
+    .login-card__face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        padding: 2.5rem;
+        color: var(--text-dark);
+        animation: fadeIn 0.7s ease-out forwards;
+    }
+    .login-card__face--back {
+        transform: rotateY(180deg);
+    }
+    
+    .login-header { text-align: center; margin-bottom: 2rem; }
+    .login-title { font-size: 1.75rem; font-weight: 600; color: var(--text-dark); }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+        display: block;
+        color: var(--text-muted);
+    }
+
+    .input-group { position: relative; }
+    .form-control {
+        background-color: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+        padding-left: 2.75rem;
+    }
+    .form-control::placeholder { color: #9ca3af; }
+    .form-control:focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        border-color: var(--brand);
+        color: var(--text-dark);
+    }
+    .input-group-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: var(--text-muted); }
+    
+    .btn-submit {
+        font-weight: 600;
+        padding: 0.75rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease-out;
+        border: none;
+        cursor: pointer; /* <-- THE FIX IS HERE */
+    }
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.05);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-member { background-color: var(--brand); }
+    .btn-admin { background-color: #334155; }
+
+    .switch-form-link {
+        display: block; text-align: center; margin-top: 1.5rem;
+        color: var(--text-light); text-decoration: none;
+        font-weight: 500; cursor: pointer; transition: color 0.2s ease;
+    }
+    .switch-form-link:hover { color: var(--brand); text-decoration: underline; }
+    
+    .logged-in-link { display: block; text-align: center; margin-top: 1rem; padding: 0.75rem; background-color: var(--border-subtle); border-radius: 8px; color: var(--text-dark); font-weight: 500; text-decoration: none; transition: background-color 0.2s ease; }
+    .logged-in-link:hover { background-color: var(--border); }
+</style>
+{% endblock %}
+
+
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Portal - Korje Hasanah Group</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --member-color: #0ea5e9;
-            --admin-color: #e9c46a;
-            --text-color: #0284c7;
-            --light-gray: #f8f9fa;
-            --white: #ffffff;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(to right top, #f2f7f6, #f8f9fa, #ffffff);
-            color: var(--text-color);
-            min-height: 100vh;
-        }
-
-        .login-container {
-            background-color: var(--white);
-            border-radius: 1rem;
-            box-shadow: 0 15px 35px rgba(42, 157, 143, 0.1), 0 5px 15px rgba(0,0,0,0.07);
-            overflow: hidden; /* Ensures child elements conform to border-radius */
-            transition: all 0.3s ease;
-        }
-        
-        /* Tab Styling */
-        .login-tabs .nav-link {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #6c757d;
-            border: 0;
-            border-radius: 0;
-            padding: 1.25rem 1rem;
-            transition: all 0.3s ease;
-            background-color: #f1f3f5;
-        }
-
-        /* Active Tab Styling */
-        .login-tabs .nav-link.active {
-            color: var(--white);
-        }
-        
-        #member-login-tab.active {
-            background-color: var(--member-color);
-        }
-        
-        #admin-login-tab.active {
-            background-color: var(--admin-color);
-            color: var(--text-color); /* Darker text for yellow background */
-        }
-        
-        .tab-content {
-            padding: 2.5rem;
-        }
-        
-        /* Input Field Styling */
-        .form-label {
-            font-weight: 500;
-        }
-
-        .input-group-text {
-            background-color: var(--light-gray);
-            border: 1px solid #dee2e6;
-        }
-
-        .form-control-lg {
-            font-size: 1rem;
-            padding: 0.75rem 1.25rem;
-        }
-        .form-control-lg:focus {
-            box-shadow: 0 0 0 0.25rem rgba(42, 157, 143, 0.2);
-            border-color: var(--member-color);
-        }
-
-        .btn-lg {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-submit {
-            color: var(--white);
-            border: none;
-        }
-        .btn-submit:hover {
-            color: var(--white);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .btn-member { background-color: var(--member-color); }
-        .btn-member:hover { background-color: #005e8c; }
-        
-        .btn-admin { 
-            background-color: var(--admin-color);
-            color: var(--text-color);
-        }
-        .btn-admin:hover { 
-            background-color: #e0bb59;
-            color: var(--text-color);
-        }
-        
-        .error-message {
-            font-size: 0.85rem;
-            color: #e76f51;
-            height: 1.2rem;
-            margin-top: 0.25rem;
-        }
-        
-        .helper-text {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
-    </style>
-</head>
-<body>
-
-<div class="container py-5">
-    <main>
-
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6 col-xl-5">
-                <div class="login-container">
-                    
-                    <ul class="nav nav-pills nav-fill login-tabs" id="loginTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="member-login-tab" data-bs-toggle="pill" data-bs-target="#member-login-pane" type="button" role="tab" aria-controls="member-login-pane" aria-selected="true">
-                                <i class="fas fa-users me-2"></i>Member
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="admin-login-tab" data-bs-toggle="pill" data-bs-target="#admin-login-pane" type="button" role="tab" aria-controls="admin-login-pane" aria-selected="false">
-                                <i class="fas fa-user-shield me-2"></i>Admin
-                            </button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="loginTabContent">
-                        
-                        <div class="tab-pane fade show active" id="member-login-pane" role="tabpanel" aria-labelledby="member-login-tab" tabindex="0">
-                            <form method="POST" action="{{ url_for('member.login') }}">
-                                <div class="mb-3">
-                                    <label for="member-nid" class="form-label">NID Number</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-id-card fa-fw"></i></span>
-                                        <input type="text" class="form-control form-control-lg" id="member-nid" name="nid" placeholder="Enter your NID" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="member-password" class="form-label">Password</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock fa-fw"></i></span>
-                                        <input type="password" class="form-control form-control-lg" id="member-password" name="password" placeholder="••••••••" required>
-                                    </div>
-                                    <div class="error-message">
-                                        {% with messages = get_flashed_messages(category_filter=["member_error"]) %}
-                                            {% if messages %}{{ messages[0] }}{% endif %}
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-submit btn-member w-100 btn-lg mt-3">Login as Member</button>
-                            </form>
-                            <p class="helper-text text-center mt-3">For registered group members only.</p>
-                        </div>
-
-                        <div class="tab-pane fade" id="admin-login-pane" role="tabpanel" aria-labelledby="admin-login-tab" tabindex="0">
-                            <form method="POST" action="{{ url_for('admin.login') }}">
-                                <div class="mb-3">
-                                    <label for="admin-username" class="form-label">Username</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user fa-fw"></i></span>
-                                        <input type="text" class="form-control form-control-lg" id="admin-username" name="username" placeholder="Enter username" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="admin-password" class="form-label">Password</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock fa-fw"></i></span>
-                                        <input type="password" class="form-control form-control-lg" id="admin-password" name="password" placeholder="••••••••" required>
-                                    </div>
-                                    <div class="error-message">
-                                        {% with messages = get_flashed_messages(category_filter=["admin_error"]) %}
-                                            {% if messages %}{{ messages[0] }}{% endif %}
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-submit btn-admin w-100 btn-lg mt-3">Login as Admin</button>
-                            </form>
-                            <p class="helper-text text-center mt-3">For authorized branch administrators.</p>
-                        </div>
-
-                    </div>
+<div class="login-portal-wrapper">
+    <div class="login-card-scene">
+        <div class="login-card" id="login-card">
+            
+            <div class="login-card__face login-card__face--front">
+                <div class="login-header">
+                    <h1 class="login-title">Member Portal Login</h1>
                 </div>
-            </div>
-        </div>
-    </main>
-</div>
+                <form method="POST" action="{{ url_for('member.login') }}">
+                    <div class="form-group">
+                        <label for="member-nid">NID Number</label>
+                        <div class="input-group">
+                            <i class="fas fa-id-card input-group-icon"></i>
+                            <input type="text" class="form-control" id="member-nid" name="nid" placeholder="Your NID Number" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="member-password">Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock input-group-icon"></i>
+                            <input type="password" class="form-control" id="member-password" name="password" placeholder="••••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit w-100 mt-3 btn-member">Login</button>
+                </form>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+                {% if session.get('member_logged_in') %}
+                    <a href="{{ url_for('member.profile') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Your Profile</a>
+                {% endif %}
+
+                <a class="switch-form-link" data-flip-target="login-card">Are you an Admin? Login here.</a>
+            </div>
+
+            <div class="login-card__face login-card__face--back">
+                <div class="login-header">
+                    <h1 class="login-title">Admin Portal Login</h1>
+                </div>
+                <form method="POST" action="{{ url_for('admin.login') }}">
+                    <div class="form-group">
+                        <label for="admin-username">Username</label>
+                        <div class="input-group">
+                            <i class="fas fa-user-shield input-group-icon"></i>
+                            <input type="text" class="form-control" id="admin-username" name="username" placeholder="Admin username" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-key input-group-icon"></i>
+                            <input type="password" class="form-control" id="admin-password" name="password" placeholder="••••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-dark btn-submit w-100 mt-3 btn-admin">Login</button>
+                </form>
+
+                {% if session.get('admin_logged_in') %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Dashboard</a>
+                {% endif %}
+                
+                <a class="switch-form-link" data-flip-target="login-card">Are you a Member? Login here.</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const flipLinks = document.querySelectorAll('[data-flip-target]');
+    
+    flipLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const cardId = this.dataset.flipTarget;
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.toggle('is-flipped');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
-
+from sqlalchemy import func
 from extensions import db
 from models import Member, Loan, LoanApplication, Donation, Vote, VoteItem, Notification, MembershipApplication
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -59,7 +59,12 @@ def profile():
         return redirect(url_for("public.login"))
 
     member = get_current_member()
-    return render_template("member/profile.html", member=member)
+    total_due = (
+        db.session.query(func.coalesce(func.sum(Loan.remaining_amount), 0))
+        .filter(Loan.member_id == member.member_id, Loan.status == "ongoing")
+        .scalar()
+    )
+    return render_template("member/profile.html", member=member, due_amount=total_due)
 
 
 @member_app.route("/edit_profile", methods=["GET", "POST"])
