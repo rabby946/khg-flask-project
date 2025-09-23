@@ -121,7 +121,7 @@
     }
     
     .btn-member { background-color: var(--brand); }
-    .btn-admin { background-color: #334155; }
+    .btn-admin { background-color: var(--brand); }
 
     .switch-form-link {
         display: block; text-align: center; margin-top: 1.5rem;
@@ -143,7 +143,7 @@
             
             <div class="login-card__face login-card__face--front">
                 <div class="login-header">
-                    <h1 class="login-title">Member Portal Login</h1>
+                    <h1 class="login-title">Member Login</h1>
                 </div>
                 <form method="POST" action="{{ url_for('member.login') }}">
                     <div class="form-group">
@@ -172,7 +172,7 @@
 
             <div class="login-card__face login-card__face--back">
                 <div class="login-header">
-                    <h1 class="login-title">Admin Portal Login</h1>
+                    <h1 class="login-title">Admin Login</h1>
                 </div>
                 <form method="POST" action="{{ url_for('admin.login') }}">
                     <div class="form-group">

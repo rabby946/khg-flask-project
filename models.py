@@ -19,7 +19,6 @@ class Member(db.Model):
     gender = db.Column(db.String(20))
     date_of_birth = db.Column(db.Date)
 
-    # Relationships
     loans = db.relationship("Loan", back_populates="member", lazy=True, cascade="all, delete-orphan")
     donations = db.relationship("Donation", back_populates="member", lazy=True, cascade="all, delete-orphan")
     loan_applications = db.relationship("LoanApplication", back_populates="member", lazy=True, cascade="all, delete-orphan")
@@ -37,7 +36,6 @@ class Admin(db.Model):
     role = db.Column(db.String(50), default="admin")  # admin, super_admin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     audit_logs = db.relationship("AuditLog", back_populates="admin", lazy=True)
     reviewed_loan_applications = db.relationship("LoanApplication", back_populates="admin", lazy=True)
     sent_notifications = db.relationship("Notification", back_populates="admin", lazy=True)
@@ -51,9 +49,8 @@ class Loan(db.Model):
     approved_amount = db.Column(db.Numeric(12, 2), nullable=False)
     remaining_amount = db.Column(db.Numeric(12, 2), nullable=True)
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default="ongoing")  # ongoing, paid, defaulted
+    status = db.Column(db.String(20), default="ongoing")  
 
-    # Relationships
     member = db.relationship("Member", back_populates="loans")
     transactions = db.relationship("LoanTransaction", back_populates="loan", lazy=True)
 
@@ -62,11 +59,10 @@ class LoanTransaction(db.Model):
     __tablename__ = "loan_transactions"
     transaction_id = db.Column(db.Integer, primary_key=True)
     loan_id = db.Column(db.Integer, db.ForeignKey("loans.loan_id"), nullable=False)
-    transaction_type = db.Column(db.String(10), nullable=False)  # borrow, repay
+    transaction_type = db.Column(db.String(10), nullable=False)  
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     loan = db.relationship("Loan", back_populates="transactions")
 
 
@@ -76,14 +72,16 @@ class LoanApplication(db.Model):
     member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
     amount_requested = db.Column(db.Numeric(12, 2), nullable=False)
     cause = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(20), default="pending")  # pending, approved, rejected
+    status = db.Column(db.String(20), default="pending")  
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_by = db.Column(db.Integer, db.ForeignKey("admins.admin_id"), nullable=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
-    # Relationships
     member = db.relationship("Member", back_populates="loan_applications")
     admin = db.relationship("Admin", back_populates="reviewed_loan_applications")
+
+    vote_item = db.relationship("VoteItem", back_populates="application", uselist=False, cascade="all, delete-orphan")
+    votes = db.relationship("Vote", back_populates="application", lazy=True, cascade="all, delete-orphan")    
 
 
 # ------------------ DONATIONS ------------------
@@ -92,10 +90,9 @@ class Donation(db.Model):
     donation_id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
-    donation_type = db.Column(db.String(50), default="general")  # general, monthly, special, emergency
+    donation_type = db.Column(db.String(50), default="general")  
     donated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     member = db.relationship("Member", back_populates="donations")
 
 
@@ -106,9 +103,11 @@ class VoteItem(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    deadline = db.Column(db.DateTime, nullable=True)  # optional voting deadline
+    deadline = db.Column(db.DateTime, nullable=True)  
 
-    # Relationships
+    application_id = db.Column(db.Integer, db.ForeignKey("loan_applications.application_id"), nullable=True)
+    application = db.relationship("LoanApplication", back_populates="vote_item", uselist=False)
+
     votes = db.relationship("Vote", back_populates="item", lazy=True)
 
 
@@ -117,10 +116,12 @@ class Vote(db.Model):
     vote_id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey("vote_items.item_id"), nullable=False)
-    choice = db.Column(db.Integer, nullable=False)  # 0 to 9
+    choice = db.Column(db.Integer, nullable=False) 
     voted_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
+    application_id = db.Column(db.Integer, db.ForeignKey("loan_applications.application_id"), nullable=True)
+    application = db.relationship("LoanApplication", back_populates="votes")
+
     member = db.relationship("Member", back_populates="votes")
     item = db.relationship("VoteItem", back_populates="votes")
 
@@ -141,7 +142,6 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     member = db.relationship("Member", back_populates="notifications")
     admin = db.relationship("Admin", back_populates="sent_notifications")
 
@@ -157,7 +157,6 @@ class AuditLog(db.Model):
     target_id = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     admin = db.relationship("Admin", back_populates="audit_logs")
     member = db.relationship("Member", back_populates="audit_logs")
 
@@ -176,7 +175,7 @@ class MembershipApplication(db.Model):
     oath_paper_url = db.Column(db.String(200))
     nid = db.Column(db.String(20), unique=True)
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(50), default="pending")  # pending, approved, rejected
+    status = db.Column(db.String(50), default="pending") 
     password_hash = db.Column(db.Text, nullable=False)
     occupation = db.Column(db.String(100))
     photo_url = db.Column(db.String(300))

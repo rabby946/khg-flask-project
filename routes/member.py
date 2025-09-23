@@ -5,7 +5,7 @@ from models import Member, Loan, LoanApplication, Donation, Vote, VoteItem, Noti
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from utils import upload_to_imgbb
-
+from sqlalchemy.exc import IntegrityError
 member_app = Blueprint("member", __name__, url_prefix="/member")
 
 # ---------------- Context processor ----------------
@@ -265,20 +265,29 @@ def voting():
             # This will fail if the value is empty, missing, or not a number.
             item_id = int(request.form.get("item_id"))
             choice = int(request.form.get("choice"))
+            vote_itm = VoteItem.query.get_or_404(item_id)
+            if not (0 <= choice <= 9):
+                flash("Invalid choice. Please select a valid option.", "danger")
+                return redirect(url_for("member.voting"))
         except (ValueError, TypeError):
             # If conversion fails for any reason, flash a user-friendly error.
             flash("Invalid submission. Please select an option from the dropdown.", "danger")
             return redirect(url_for("member.voting"))
         # --- END OF VALIDATION ---
-
+        print(vote_itm.application_id)
         existing_vote = Vote.query.filter_by(member_id=member.member_id, item_id=item_id).first()
         if existing_vote:
             flash("You have already voted on this item!", "warning")
         else:
-            vote = Vote(member_id=member.member_id, item_id=item_id, choice=choice)
-            db.session.add(vote)
-            db.session.commit()
-            flash("Your vote has been successfully recorded!", "success")
+            vote = Vote(member_id=member.member_id, item_id=item_id, choice=choice,  application_id=vote_itm.application_id)
+            try:
+                db.session.add(vote)
+                db.session.commit()
+                flash("Your vote has been successfully recorded!", "success")
+            except IntegrityError:
+                db.session.rollback()
+                flash("You have already voted on this item!", "warning")
+            
         return redirect(url_for("member.voting"))
 
     # This part remains the same

@@ -163,12 +163,9 @@ def loans():
 @admin_app.route("/loan-applications/<int:application_id>")
 def loan_application_details(application_id):
     application = LoanApplication.query.get_or_404(application_id)
-
     # If voting started, fetch votes for this application
     votes = []
-    if application.status == "voting":
-        votes = Vote.query.filter_by(item_id=application.application_id).all()
-
+    votes = Vote.query.filter_by(application_id=application.application_id).all()
     return render_template("admin/loan_application_details.html", application=application, votes=votes)
 
 # Set application for voting
@@ -185,7 +182,7 @@ def set_for_voting(application_id):
     application.status = "voting"
 
     # Create a VoteItem for this loan
-    vote_item = VoteItem(title=f"Loan Approval for {application.member.name}",description=f"Loan requested: {application.amount_requested}\nCause: {application.cause or 'Not specified'}",created_at=datetime.utcnow(),item_id=application.application_id)
+    vote_item = VoteItem(title=f"Loan Approval for {application.member.name}",description=f"Loan requested: {application.amount_requested}\nCause: {application.cause or 'Not specified'}",created_at=datetime.utcnow(),application_id=application.application_id)
 
     try:
         db.session.add(vote_item)
@@ -197,17 +194,57 @@ def set_for_voting(application_id):
 
     return redirect(url_for("admin.loan_application_details", application_id=application.application_id))
 
+
 # Accept loan
 @admin_app.route("/loan-applications/<int:application_id>/accept", methods=["POST"])
 def accept_loan(application_id):
     application = LoanApplication.query.get_or_404(application_id)
-    # Create Loan record
-    loan = Loan(member_id=application.member_id,approved_amount=application.amount_requested,remaining_amount=application.amount_requested,status="ongoing",issued_at=datetime.utcnow())
+
+    # Create loan
+    loan = Loan(
+        member_id=application.member_id,
+        approved_amount=application.amount_requested,
+        remaining_amount=application.amount_requested,
+        status="ongoing",
+        issued_at=datetime.utcnow()
+    )
     db.session.add(loan)
-    db.session.flush()  
-    transaction = LoanTransaction(loan_id=loan.loan_id,transaction_type="borrow",amount=application.amount_requested,created_at=datetime.utcnow())
-    db.session.add(transaction)
+    db.session.flush()  # ensure loan.loan_id available
+
+    # Transaction
+    tx = LoanTransaction(
+        loan_id=loan.loan_id,
+        transaction_type="borrow",
+        amount=application.amount_requested,
+        created_at=datetime.utcnow()
+    )
+    db.session.add(tx)
+
+    # Update application metadata
     application.status = "approved"
+    application.reviewed_by = session.get("admin_id")
+    application.reviewed_at = datetime.utcnow()
+
+    # Delete votes tied to this application (if any)
+    # use .delete for efficiency; synchronize_session=False is OK when not relying on in-memory objects
+    # Vote.query.filter_by(application_id=application.application_id).delete(synchronize_session=False)
+
+    # Delete vote_item tied to this application (if exists)
+    vote_item = VoteItem.query.filter_by(application_id=application.application_id).first()
+    # if vote_item:
+    #     db.session.delete(vote_item)
+
+    # Audit log
+    log = AuditLog(
+        admin_id=session.get("admin_id"),
+        member_id=application.member_id,
+        action=f"Accepted loan application ID {application.application_id}",
+        target_table="loan_applications",
+        target_id=application.application_id,
+        created_at=datetime.utcnow()
+    )
+    db.session.add(log)
+
     try:
         db.session.commit()
         flash("Loan accepted and issued to member.", "success")
@@ -217,12 +254,35 @@ def accept_loan(application_id):
 
     return redirect(url_for("admin.loan_application_details", application_id=application.application_id))
 
-# Delete (Reject) loan application
+
+# Reject / Delete application
 @admin_app.route("/loan-applications/delete/<int:application_id>", methods=["POST"])
 def delete_loan_application(application_id):
     application = LoanApplication.query.get_or_404(application_id)
+    member_id = application.member_id
+
+    # Delete votes tied to this application
+    Vote.query.filter_by(application_id=application.application_id).delete(synchronize_session=False)
+
+    # Delete vote_item tied to this application
+    vote_item = VoteItem.query.filter_by(application_id=application.application_id).first()
+    if vote_item:
+        db.session.delete(vote_item)
+
+    # Audit log (record before deleting application)
+    log = AuditLog(
+        admin_id=session.get("admin_id"),
+        member_id=member_id,
+        action=f"Rejected (deleted) loan application ID {application.application_id}",
+        target_table="loan_applications",
+        target_id=application.application_id,
+        created_at=datetime.utcnow()
+    )
+    db.session.add(log)
+
+    # Delete application object
     db.session.delete(application)
-    db.session.commit()
+
     try:
         db.session.commit()
         flash("Loan application rejected successfully.", "success")

@@ -195,7 +195,13 @@
                         <td class="py-3">#{{ loan.loan_id }}</td>
                         <td class="py-3">{{ "%.2f"|format(loan.approved_amount) }} BDT</td>
                         <td class="py-3">{{ "%.2f"|format(loan.remaining_amount) }} BDT</td>
-                        <td class="py-3"><span class="badge rounded-pill text-bg-{{ 'success' if loan.status == 'Paid' else 'warning' if loan.status == 'Ongoing' else 'secondary' }}">{{ loan.status }}</span></td>
+                        <td class="py-3"><span class="badge rounded-pill text-bg-{{ 'success' if loan.status == 'Paid' else 'warning' if loan.status == 'Ongoing' else 'secondary' }}">
+                            {% if loan.status == "paid": %}
+                                <h7 style="color: rgb(156, 255, 156);">{{ loan.status }}</h7>
+                            {% else: %}
+                                <h7 style="color: #ff9d9d;">{{ loan.status }}</h7>
+                            {% endif %}
+                        </span></td>
                         <td class="py-3">{{ loan.issued_at.strftime('%d %b %Y') if loan.issued_at else 'N/A' }}</td>
                     </tr>
                     {% endfor %}
