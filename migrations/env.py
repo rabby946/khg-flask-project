@@ -1,53 +1,35 @@
-import logging
-from logging.config import fileConfig
+from __future__ import with_statement
 import sys
 import os
+from logging.config import fileConfig
 
-from flask import current_app
 from alembic import context
+from flask import current_app
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from app import create_app
+from extensions import db
+
+# Create Flask app instance via factory
+flask_app = create_app()
+app_context = flask_app.app_context()
+app_context.push()
+
 config = context.config
-
-# Interpret the config file for Python logging.
 fileConfig(config.config_file_name)
-logger = logging.getLogger('alembic.env')
 
-# Add project root to sys.path so we can import app and models
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import your Flask app and models
-from app import db
-import models  # <-- only if you have a separate models.py file where tables are defined
-
-# Use the metadata from Flask-SQLAlchemy
 target_metadata = db.metadata
-
-
-def get_engine():
-    """Get the SQLAlchemy engine from Flask-Migrate/SQLAlchemy."""
-    try:
-        return current_app.extensions['migrate'].db.get_engine()
-    except (TypeError, AttributeError):
-        return current_app.extensions['migrate'].db.engine
-
-
-def get_engine_url():
-    """Return the URL for offline mode."""
-    try:
-        return get_engine().url.render_as_string(hide_password=False).replace('%', '%%')
-    except AttributeError:
-        return str(get_engine().url).replace('%', '%%')
 
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = flask_app.config.get("SQLALCHEMY_DATABASE_URI")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
@@ -56,26 +38,13 @@ def run_migrations_offline():
 
 def run_migrations_online():
     """Run migrations in 'online' mode."""
-
-    def process_revision_directives(context, revision, directives):
-        """Prevent creating empty migrations."""
-        if getattr(config.cmd_opts, 'autogenerate', False):
-            script = directives[0]
-            if script.upgrade_ops.is_empty():
-                directives[:] = []
-                logger.info('No changes in schema detected.')
-
-    conf_args = current_app.extensions['migrate'].configure_args
-    if conf_args.get("process_revision_directives") is None:
-        conf_args["process_revision_directives"] = process_revision_directives
-
-    connectable = get_engine()
+    connectable = db.engine
 
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            **conf_args
+            compare_type=True,
         )
 
         with context.begin_transaction():
@@ -86,3 +55,6 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+# Clean up context after migrations
+app_context.pop()

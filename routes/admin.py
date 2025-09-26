@@ -4,9 +4,49 @@ from models import Admin, Donation, Loan, MembershipApplication, Member, LoanApp
 from extensions import db
 from utils import upload_to_imgbb
 from sqlalchemy import desc , asc, func
-admin_app = Blueprint("admin", __name__, url_prefix="/admin")
+from flask_mail import Message
+from extensions import mail
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+import logging
+admin_app = Blueprint("admin", __name__, url_prefix="/admin")
+from flask import current_app
+
+
+def sendMail(recipient, subject, body):
+    if not isinstance(recipient, list):
+        recipient = [recipient]
+    msg = Message(
+        subject=subject,
+        recipients=recipient,
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        body=body,
+        html=f"<p>{body}</p>"
+    )
+    try:
+        mail.send(msg)
+        logging.info(f"Email sent to {recipient}")
+        print(f"Email sent to {recipient}")  # console log
+        return True
+    except Exception as e:
+        logging.error(f"Failed to send email to {recipient}: {e}")
+        print(f"Failed to send email to {recipient}: {e}")
+
+def sendMailhtml(recipient, subject, html_body):
+    if not isinstance(recipient, list):
+        recipient = [recipient]
+    msg = Message(
+        subject=subject,
+        recipients=recipient,
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        html=html_body
+    )
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Failed to send email to {recipient}: {e}")
+
+
 @admin_app.context_processor
 def inject_now():
     return {'year': datetime.now().year}
@@ -124,6 +164,25 @@ def approve_membership(app_id):
     # Update application status
     app.status = "approved"
     db.session.commit()
+    log = AuditLog(
+        admin_id=session.get("admin_id"),
+        member_id=new_member.member_id,
+        action=f"Approved membership application ID {app.id}",
+        target_table="membership_applications",
+        target_id=app.id,
+        amount=0
+    )
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+    html_body = render_template(
+        "emails/membership_approved.html",
+        member=new_member,
+        year=datetime.utcnow().year,
+        admin_role=cur_admin.role
+    )
+
+    sendMailhtml(app.email, "Membership Application Approved", html_body)
+    db.session.add(log)
+    db.session.commit()
     flash(f"Membership approved for {app.name}", "success")
     return redirect(url_for("admin.memberships"))
 
@@ -134,6 +193,16 @@ def reject_membership(app_id):
         flash("This application has already been reviewed.", "warning")
         return redirect(url_for("admin.memberships"))
     app.status = "rejected"
+    log = AuditLog(
+        admin_id=session.get("admin_id"),
+        action=f"Rejected membership application of {app.name}, nid={app.nid}",
+        target_table="membership_applications",
+        target_id=app.id,
+        amount=0
+    )
+    db.session.add(log)
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+    sendMail(app.email, f"Membership application rejected", f"Your Membership application has been rejected.  {cur_admin.role} , KHG ")
     db.session.commit()
     flash(f"Membership rejected for {app.name}", "danger")
     return redirect(url_for("admin.memberships"))
@@ -183,7 +252,9 @@ def set_for_voting(application_id):
 
     # Create a VoteItem for this loan
     vote_item = VoteItem(title=f"Loan Approval for {application.member.name}",description=f"Loan requested: {application.amount_requested}\nCause: {application.cause or 'Not specified'}",created_at=datetime.utcnow(),application_id=application.application_id)
-
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+    member = Member.query.get_or_404(application.member_id)  
+    sendMail(member.email, f"Loan application has been set for voting", f"Your Loan Application has been set for voting. Requested amount : {application.amount_requested}. Loan application cause: {application.cause}.  {cur_admin.role} , KHG ")
     try:
         db.session.add(vote_item)
         db.session.commit()
@@ -241,10 +312,13 @@ def accept_loan(application_id):
         action=f"Accepted loan application ID {application.application_id}",
         target_table="loan_applications",
         target_id=application.application_id,
+        amount=tx.amount,
         created_at=datetime.utcnow()
     )
     db.session.add(log)
-
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+    member = Member.query.get_or_404(application.member_id)  
+    sendMail(member.email, f"Loan application has been accepted", f"Your Loan Application has been accepted. Requested amount : {application.amount_requested}. Loan application cause: {application.cause}.  {cur_admin.role} , KHG ")
     try:
         db.session.commit()
         flash("Loan accepted and issued to member.", "success")
@@ -260,7 +334,9 @@ def accept_loan(application_id):
 def delete_loan_application(application_id):
     application = LoanApplication.query.get_or_404(application_id)
     member_id = application.member_id
-
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+    member = Member.query.get_or_404(member_id)  
+    sendMail(member.email, f"Loan application rejected", f"Your Loan Application has been rejected. Requested amount : {application.amount_requested}. Loan application cause: {application.cause}.  {cur_admin.role} , KHG ")
     # Delete votes tied to this application
     Vote.query.filter_by(application_id=application.application_id).delete(synchronize_session=False)
 
@@ -268,21 +344,12 @@ def delete_loan_application(application_id):
     vote_item = VoteItem.query.filter_by(application_id=application.application_id).first()
     if vote_item:
         db.session.delete(vote_item)
-
     # Audit log (record before deleting application)
-    log = AuditLog(
-        admin_id=session.get("admin_id"),
-        member_id=member_id,
-        action=f"Rejected (deleted) loan application ID {application.application_id}",
-        target_table="loan_applications",
-        target_id=application.application_id,
-        created_at=datetime.utcnow()
-    )
+    log = AuditLog(admin_id=session.get("admin_id"),member_id=member_id,action=f"Rejected (deleted) loan application ID {application.application_id}",target_table="loan_applications",target_id=application.application_id,amount=0,created_at=datetime.utcnow())
     db.session.add(log)
 
     # Delete application object
     db.session.delete(application)
-
     try:
         db.session.commit()
         flash("Loan application rejected successfully.", "success")
@@ -388,9 +455,11 @@ def edit_member(member_id):
         if new_password:
             member.password_hash = new_password
         db.session.commit()
+        cur_admin = Admin.query.get_or_404(session.get("admin_id"))
+        sendMail(member.email, f"Informations Updated", f"Your informations has been updated.  {cur_admin.role} , KHG ")
         flash("Member details updated successfully.", "success")
         return redirect(url_for("admin.manage_members"))
-
+        
     return render_template("admin/edit_member.html", member=member)
 
 
@@ -402,7 +471,7 @@ def delete_member(member_id):
         return redirect(url_for("public.home"))
 
     member = Member.query.get_or_404(member_id)
-
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
     # Delete related loans & donations
     for loan in member.loans:
         db.session.delete(loan)
@@ -412,6 +481,7 @@ def delete_member(member_id):
     db.session.delete(member)
     db.session.commit()
     flash(f"Member {member.name} deleted permanently.", "success")
+    sendMail(member.email, f"Loan Granted", f"Your Membership has been cancelled. If you think this is unintentional reach out Korje Hasanah Group visiting khg-bd.onrender.com/contact Added by : {cur_admin.role} , KHG ")
     return redirect(url_for("admin.manage_members"))
 
 
@@ -493,7 +563,7 @@ def loan_management():
         loan_id = request.form.get("loan_id")  # can be empty if creating new loan
         action_type = request.form.get("action_type")  # borrow or repay
         amount_raw = request.form.get("amount", "0")
-
+        cur_admin = Admin.query.get_or_404(session.get("admin_id"))
         # Validate member
         member = Member.query.get(member_id)
         if not member:
@@ -530,11 +600,7 @@ def loan_management():
                 if loan.remaining_amount <= 0:
                     if loan.remaining_amount < 0:
                         extra = abs(loan.remaining_amount)
-                        donation = Donation(
-                            member_id=loan.member_id,
-                            amount=extra,
-                            donation_type="Extra repayment"
-                        )
+                        donation = Donation(member_id=loan.member_id,amount=extra,donation_type="Extra repayment")
                         db.session.add(donation)
                         flash(f"Extra {extra} converted to donation.", "info")
 
@@ -542,19 +608,11 @@ def loan_management():
                     loan.status = "paid"
 
                 # Create repayment transaction
-                transaction = LoanTransaction(
-                    loan_id=loan.loan_id,
-                    transaction_type="repay",
-                    amount=amount,
-                )
+                transaction = LoanTransaction(loan_id=loan.loan_id,transaction_type="repay",amount=amount,)
                 db.session.add(transaction)
 
                 # Audit log
-                audit = AuditLog(
-                    member_id=loan.member_id,
-                    admin_id=session.get("admin_id"),
-                    action=f"{member.name} repaid {amount} for Loan ID {loan.loan_id}"
-                )
+                audit = AuditLog(member_id=loan.member_id,admin_id=session.get("admin_id"),action=f"repaid",target_table="loans",target_id=loan.loan_id,amount=amount_raw)
                 db.session.add(audit)
 
                 # Notification -> send to the loan owner (safe)
@@ -568,41 +626,31 @@ def loan_management():
                     )
                 )
                 db.session.add(notification)
+                sendMail(member.email, f"Loan Granted", message=(
+                        f"Your repayment of {amount} has been recorded. "
+                        f"Original loan: {loan.approved_amount}, Remaining: {loan.remaining_amount}. "
+                        f"Issued at: {loan.issued_at}"
+                       f"{cur_admin.role} , KHG " ) )
 
             elif action_type == "borrow":
                 # Create new loan (no application)
-                loan = Loan(
-                    member_id=member.member_id,
-                    approved_amount=amount,
-                    remaining_amount=amount,
-                    status="ongoing",
-                )
+                loan = Loan(member_id=member.member_id,approved_amount=amount,remaining_amount=amount,status="ongoing",)
+
                 db.session.add(loan)
                 db.session.flush()  # get loan.loan_id
 
                 # Create borrow transaction
-                transaction = LoanTransaction(
-                    loan_id=loan.loan_id,
-                    transaction_type="borrow",
-                    amount=amount,
-                )
+                transaction = LoanTransaction(loan_id=loan.loan_id,transaction_type="borrow",amount=amount)
                 db.session.add(transaction)
 
                 # Audit log
-                audit = AuditLog(
-                    member_id=member.member_id,
-                    admin_id=session.get("admin_id"),
-                    action=f"{member.name} borrowed {amount} (Loan ID {loan.loan_id})"
-                )
+                audit = AuditLog(member_id=member.member_id,admin_id=session.get("admin_id"),action=f"borrow",target_table="loans",target_id=loan.loan_id,amount=amount)
                 db.session.add(audit)
 
                 # Notification
-                notification = Notification(
-                    member_id=member.member_id,
-                    admin_id=session.get("admin_id"),
-                    message=f"A new loan of {amount} has been issued to you."
-                )
+                notification = Notification(member_id=member.member_id,admin_id=session.get("admin_id"),message=f"A new loan of {amount} has been issued to you.")
                 db.session.add(notification)
+                sendMail(member.email, f"Loan Granted", f"A new loan of {amount} has been issued to you. Added by : {cur_admin.role} , KHG ")
 
             db.session.commit()
             flash("Loan action completed successfully.", "success")
@@ -627,23 +675,24 @@ def add_donation():
 
         member = Member.query.get_or_404(member_id)
 
-        donation = Donation(
-            member_id=member.member_id,
-            amount=amount,
-            donation_type=donation_type
-        )
+        donation = Donation(member_id=member.member_id,amount=amount,donation_type=donation_type)
         db.session.add(donation)
-
-        # Optional: Audit log
-        audit = AuditLog(
-            member_id=member.member_id,
-            admin_id=session.get("admin_id"),
-            action=f"Admin added donation of {amount} to {member.name}"
-        )
+        db.session.commit()      
+        audit = AuditLog(admin_id=session.get("admin_id"),member_id=member.member_id,action=f"{donation_type}",target_table="donations",target_id=donation.donation_id,amount=amount)
         db.session.add(audit)
-
         db.session.commit()
+        sendMail(member.email, f"donation", f"Your donation amount {amount} added. Donation type : {donation_type} ")
         flash("Donation added successfully.", "success")
+
         return redirect(url_for("admin.add_donation"))
 
     return render_template("admin/add_donation.html", members=members, donations=donations)
+
+@admin_app.route("/test-email")
+def test_email():
+    sendMail(
+        ["fahimahmedviil@gmail.com"], 
+        "Test Email from Flask", 
+        "Hello, this is a test email from your Flask app via Brevo SMTP."
+    )
+    return "Email sent!"

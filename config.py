@@ -12,6 +12,15 @@ class Config:
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # mail configuration
+    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp-relay.brevo.com")
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
+
     # Cloudinary credentials
     CLOUD_NAME = os.getenv("CLOUD_NAME")
     CLOUD_API_KEY = os.getenv("CLOUD_API_KEY")

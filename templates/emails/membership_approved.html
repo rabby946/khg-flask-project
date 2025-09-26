@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Membership Approved</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0dcaf0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f1f1f1;
+        }
+        .footer {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Membership Approved</h1>
+    <p>Dear {{ member.name }},</p>
+    <p>Your membership application has been approved. Below are your details:</p>
+
+    <table>
+        <tr><th>Name</th><td>{{ member.name }}</td></tr>
+        <tr><th>Father's Name</th><td>{{ member.father_name }}</td></tr>
+        <tr><th>Email</th><td>{{ member.email }}</td></tr>
+        <tr><th>Phone</th><td>{{ member.phone }}</td></tr>
+        <tr><th>Address</th><td>{{ member.address }}</td></tr>
+        <tr><th>Gender</th><td>{{ member.gender }}</td></tr>
+        <tr><th>Date of Birth</th><td>{{ member.date_of_birth }}</td></tr>
+        <tr><th>NID</th><td>{{ member.nid }}</td></tr>
+        <tr><th>Occupation</th><td>{{ member.occupation }}</td></tr>
+        <tr><th>Join Date</th><td>{{ member.join_date }}</td></tr>
+    </table>
+
+    <p>Thank you for joining <strong>Korje Hasanah Group (KHG)</strong>.</p>
+
+    <div class="footer">
+        &copy; {{ year }} Korje Hasanah Group
+    </div>
+</div>
+</body>
+</html>

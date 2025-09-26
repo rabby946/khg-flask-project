@@ -25,6 +25,7 @@ class Member(db.Model):
     votes = db.relationship("Vote", back_populates="member", lazy=True, cascade="all, delete-orphan")
     notifications = db.relationship("Notification", back_populates="member", lazy=True, cascade="all, delete-orphan")
     audit_logs = db.relationship("AuditLog", back_populates="member", lazy=True, cascade="all, delete-orphan")
+    
 
 
 # ------------------ ADMIN ------------------
@@ -32,13 +33,16 @@ class Admin(db.Model):
     __tablename__ = "admins"
     admin_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
+    full_name = db.Column(db.String(100))
     password_hash = db.Column(db.Text, nullable=False)
-    role = db.Column(db.String(50), default="admin")  # admin, super_admin
+    role = db.Column(db.String(50), default="admin")
+    photo_url = db.Column(db.String(300))
+    phone = db.Column(db.String(15))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    audit_logs = db.relationship("AuditLog", back_populates="admin", lazy=True)
-    reviewed_loan_applications = db.relationship("LoanApplication", back_populates="admin", lazy=True)
-    sent_notifications = db.relationship("Notification", back_populates="admin", lazy=True)
+    audit_logs = db.relationship("AuditLog", back_populates="admin", lazy=True, cascade="all, delete-orphan")
+    loan_applications = db.relationship("LoanApplication", back_populates="admin", lazy=True, cascade="all, delete-orphan")
+    sent_notifications = db.relationship("Notification", back_populates="admin", lazy=True, cascade="all, delete-orphan")
 
 
 # ------------------ LOANS ------------------
@@ -69,19 +73,21 @@ class LoanTransaction(db.Model):
 class LoanApplication(db.Model):
     __tablename__ = "loan_applications"
     application_id = db.Column(db.Integer, primary_key=True)
-    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
+    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id", ondelete="CASCADE"), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey("admins.admin_id", ondelete="CASCADE"), nullable=True)
     amount_requested = db.Column(db.Numeric(12, 2), nullable=False)
     cause = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default="pending")  
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
-    reviewed_by = db.Column(db.Integer, db.ForeignKey("admins.admin_id"), nullable=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
     member = db.relationship("Member", back_populates="loan_applications")
-    admin = db.relationship("Admin", back_populates="reviewed_loan_applications")
+    admin = db.relationship("Admin", back_populates="loan_applications")
+
 
     vote_item = db.relationship("VoteItem", back_populates="application", uselist=False, cascade="all, delete-orphan")
-    votes = db.relationship("Vote", back_populates="application", lazy=True, cascade="all, delete-orphan")    
+    votes = db.relationship("Vote", back_populates="application", lazy=True, cascade="all, delete-orphan")
+    
 
 
 # ------------------ DONATIONS ------------------
@@ -136,7 +142,7 @@ class Notification(db.Model):
     __tablename__ = "notifications"
     notification_id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
-    admin_id = db.Column(db.Integer, db.ForeignKey("admins.admin_id"), nullable=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey("admins.admin_id", ondelete="CASCADE"), nullable=True)
     message = db.Column(db.Text, nullable=False)
     notification_type = db.Column(db.String(50), default="general")
     is_read = db.Column(db.Boolean, default=False)
@@ -150,11 +156,12 @@ class Notification(db.Model):
 class AuditLog(db.Model):
     __tablename__ = "audit_logs"
     log_id = db.Column(db.Integer, primary_key=True)
-    admin_id = db.Column(db.Integer, db.ForeignKey("admins.admin_id"), nullable=True)
-    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey("admins.admin_id", ondelete="CASCADE"), nullable=True)
+    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
     action = db.Column(db.Text, nullable=False)
     target_table = db.Column(db.String(50), nullable=True)
     target_id = db.Column(db.Integer, nullable=True)
+    amount = db.Column(db.Numeric(12, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     admin = db.relationship("Admin", back_populates="audit_logs")

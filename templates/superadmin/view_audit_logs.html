@@ -1,93 +1,101 @@
 {% extends "superadmin/base.html" %}
-
 {% block super_admin_content %}
-<div class="container-fluid">
-  <h2 class="mb-4">Audit Logs</h2>
+<div class="container-fluid mt-3">
+    <h2 class="mb-4">Audit Logs</h2>
 
-  <!-- Filter / Search (optional) -->
-  <div class="mb-3">
-    <form method="GET" action="{{ url_for('superadmin.view_audit_logs') }}" class="row g-3 align-items-center">
-      <div class="col-auto">
-        <input type="text" name="user" class="form-control" placeholder="Search by User">
-      </div>
-      <div class="col-auto">
-        <input type="text" name="action" class="form-control" placeholder="Search by Action">
-      </div>
-      <div class="col-auto">
-        <input type="date" name="date" class="form-control">
-      </div>
-      <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Filter</button>
-      </div>
+    <!-- Filters -->
+    <form id="filter-form" method="get" class="row g-3 mb-4">
+        <div class="col-12 col-md-4 col-lg-3">
+            <label class="form-label">Admin</label>
+            <select name="admin_id" class="form-select">
+                <option value="all">All Admins</option>
+                {% for admin in admins %}
+                    <option value="{{ admin.admin_id }}" {% if selected_admin|string == admin.admin_id|string %}selected{% endif %}>{{ admin.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 col-lg-3">
+            <label class="form-label">Member</label>
+            <select name="member_id" class="form-select">
+                <option value="all">All Members</option>
+                {% for member in members %}
+                    <option value="{{ member.member_id }}" {% if selected_member|string == member.member_id|string %}selected{% endif %}>{{ member.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 col-lg-3">
+            <label class="form-label">Target Table</label>
+            <select name="target_table" class="form-select">
+                <option value="all">All Tables</option>
+                {% for table in target_tables %}
+                    <option value="{{ table }}" {% if selected_target_table == table %}selected{% endif %}>{{ table }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-4 col-lg-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
     </form>
-  </div>
 
-  <!-- Logs Table -->
-  <div class="card">
-    <div class="card-header">
-      Audit Logs
+    <!-- Audit Logs Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered" id="audit-log-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Admin</th>
+                    <th>Member</th>
+                    <th>Target Table</th>
+                    <th>Action</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.created_at.strftime("%Y-%m-%d %H:%M") if log.created_at else "" }}</td>
+                    <td>{{ log.admin.full_name if log.admin else "N/A" }}</td>
+                    <td>{{ log.member.name if log.member else "N/A" }}</td>
+                    <td>{{ log.target_table }}</td>
+                    <td>{{ log.action }}</td>
+                    <td class="amount text-end" data-value="{{ log.amount }}">
+                        {% if log.target_table == "donations" or log.action.lower() == "repay" %}
+                            <span style="color: green;">+{{ "%.2f"|format(log.amount) }}</span>
+                        {% elif log.target_table == "loans" or log.action.lower() == "borrow" %}
+                            <span style="color: red;">-{{ "%.2f"|format(log.amount) }}</span>
+                        {% else %}
+                            {{ "%.2f"|format(log.amount) }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="card-body">
-      <table class="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in audit_logs %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ log.user_name }}</td>
-            <td>{{ log.action }}</td>
-            <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="4" class="text-center">No logs found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
 
-      <!-- Pagination (optional) -->
-      {% if pagination %}
-      <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-          {% if pagination.has_prev %}
-          <li class="page-item">
-            <a class="page-link" href="{{ url_for('superadmin.view_audit_logs', page=pagination.prev_num) }}">Previous</a>
-          </li>
-          {% else %}
-          <li class="page-item disabled"><span class="page-link">Previous</span></li>
-          {% endif %}
-
-          {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
-            {% if page_num %}
-              {% if page_num == pagination.page %}
-                <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
-              {% else %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('view_audit_logs', page=page_num) }}">{{ page_num }}</a></li>
-              {% endif %}
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">…</span></li>
-            {% endif %}
-          {% endfor %}
-
-          {% if pagination.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="{{ url_for('view_audit_logs', page=pagination.next_num) }}">Next</a>
-          </li>
-          {% else %}
-          <li class="page-item disabled"><span class="page-link">Next</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %}
+    <!-- Calculation Section -->
+    <div class="d-flex flex-column flex-md-row align-items-md-center gap-3 mt-4">
+        <button id="calculate-btn" class="btn btn-success">Calculate Total</button>
+        <h5>Total Calculation: <span id="calculation-result">0.00</span></h5>
     </div>
-  </div>
 </div>
+
+<!-- JS Calculation -->
+<script>
+document.getElementById("calculate-btn").addEventListener("click", function(){
+    let total = 0;
+    document.querySelectorAll("#audit-log-table tbody tr").forEach(row => {
+        let amountCell = row.querySelector(".amount");
+        let value = parseFloat(amountCell.dataset.value) || 0;
+        let color = amountCell.querySelector("span")?.style.color || "";
+
+        if(color === "green"){
+            total += value;
+        } else if(color === "red"){
+            total -= value;
+        }
+    });
+    document.getElementById("calculation-result").innerText = total.toFixed(2);
+});
+</script>
 {% endblock %}

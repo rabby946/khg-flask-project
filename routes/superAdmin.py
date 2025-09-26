@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, current_app, request, redirect, url_for, flash, session
 from extensions import db
 from models import Admin, Member, MembershipApplication, AuditLog, Donation, Loan, LoanApplication
-
+from utils import upload_to_imgbb
 superadmin_app = Blueprint("superadmin", __name__, url_prefix="/superadmin")
 
 
@@ -72,15 +72,23 @@ def add_admin():
 
     if request.method == "POST":
         username = request.form.get("username")
-        password_hash = request.form.get("password_hash")  # 🔐 hash it in production
-
-        new_admin = Admin(username=username, password_hash=password_hash, role="admin")
+        check_admin = Admin.query.filter(Admin.username==username).first()
+        if check_admin:
+            flash("username already exists")
+            print("worng")
+            return redirect(url_for("superadmin.manage_admins"))
+        full_name = request.form.get("name")
+        role = request.form.get("role")
+        phone = request.form.get("phone")
+        photo_url = upload_to_imgbb(request.files.get("photo"))
+        password_hash = request.form.get("password_hash") 
+        
+        new_admin = Admin(username=username, full_name=full_name, password_hash=password_hash, role=role, phone=phone, photo_url=photo_url)
         db.session.add(new_admin)
         db.session.commit()
 
         flash("Admin added successfully!", "success")
         return redirect(url_for("superadmin.manage_admins"))
-
     return render_template("superadmin/add_admin.html")
 
 
@@ -99,14 +107,39 @@ def delete_admin(admin_id):
 
 
 # ------------------ AUDIT LOGS ------------------
-@superadmin_app.route("/view_audit_logs")
+@superadmin_app.route("/audit-logs", methods=["GET", "POST"])
+# @superadmin_required
 def view_audit_logs():
-    if not session.get("superadmin_logged_in"):
-        flash("You are not logged in brother")
-        return redirect(url_for("public.home"))
+    admin_id = request.args.get("admin_id", "all")
+    member_id = request.args.get("member_id", "all")
+    target_table = request.args.get("target_table", "all")
 
-    audit_logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
-    return render_template("superadmin/view_audit_logs.html", audit_logs=audit_logs)
+    logs = AuditLog.query
+
+    if admin_id != "all":
+        logs = logs.filter_by(admin_id=int(admin_id))
+    if member_id != "all":
+        logs = logs.filter_by(member_id=int(member_id))
+    if target_table != "all":
+        logs = logs.filter_by(target_table=target_table)
+
+    logs = logs.order_by(AuditLog.created_at.desc()).all()
+
+    admins = Admin.query.order_by(Admin.full_name).all()
+    members = Member.query.order_by(Member.name).all()
+    target_tables = db.session.query(AuditLog.target_table.distinct()).all()
+    target_tables = [t[0] for t in target_tables if t[0]]
+
+    return render_template(
+        "superadmin/view_audit_logs.html",
+        logs=logs,
+        admins=admins,
+        members=members,
+        target_tables=target_tables,
+        selected_admin=admin_id,
+        selected_member=member_id,
+        selected_target_table=target_table
+    )
 
 
 # ------------------ REPORTS ------------------
