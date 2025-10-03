@@ -1,0 +1,161 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Members{% endblock %}
+
+{% block page_title %}Manage Members{% endblock %}
+
+{% block content %}
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<style>
+    /* Custom styles for a more polished look */
+    #membersTable_wrapper .row:first-child {
+        padding-bottom: 1rem;
+    }
+    .member-avatar {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    .table thead th {
+        font-weight: 600;
+        vertical-align: middle;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .actions-dropdown .dropdown-toggle::after {
+        display: none; /* Hide default caret */
+    }
+    .swal2-popup {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+{% endblock %}
+
+
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        {% if members %}
+            <div class="table-responsive">
+                <table id="membersTable" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>NID</th>
+                            <th>Join Date</th>
+                            <th class="no-sort text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in members %}
+                        
+                        <tr>
+                              
+                                <td> <a href="{{url_for('admin.view_member', member_id=m.member_id)}}"> {{ m.member_id }} </a></td> 
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ m.photo_url or 'https://via.placeholder.com/150/ced4da/6c757d?text=' + m.name[0] }}" 
+                                         alt="{{ m.name }}'s photo" class="member-avatar me-3">
+                                    <span class="fw-bold">{{ m.name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ m.email }}</td>
+                            <td>{{ m.phone }}</td>
+                            <td>{{ m.nid }}</td>
+                            <td>{{ m.join_date.strftime("%d %b, %Y") }}</td>
+                            
+                            <td class="text-end">
+                                <div class="dropdown actions-dropdown">
+                                    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('admin.edit_member', member_id=m.member_id) }}">
+                                                <i class="fas fa-edit me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <form action="{{ url_for('admin.delete_member', member_id=m.member_id) }}" 
+                                                  method="POST" class="delete-form d-inline">
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fas fa-trash-alt me-2"></i>Delete
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        </a>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Members Found</h4>
+                <p>Start by adding a new member to the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block scripts_extra %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#membersTable').DataTable({
+        "responsive": true,
+        "autoWidth": false,
+        "columnDefs": [
+            { "orderable": false, "targets": 'no-sort' } // Disable sorting on 'Actions' column
+        ],
+        "language": {
+            "search": "_INPUT_",
+            "searchPlaceholder": "Search members..."
+        }
+    });
+
+    // Handle Delete Confirmation with SweetAlert2
+    $('.delete-form').on('submit', function(e) {
+        e.preventDefault(); // Stop the form from submitting immediately
+        var form = this;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            customClass: {
+                popup: 'swal2-popup' // for custom font
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit(); // If confirmed, submit the form
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Member{% endblock %}
+
+{% block page_title %}Edit Member Profile{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light text-center p-4">
+                    <img src="{{ member.photo_url or 'https://via.placeholder.com/150/ced4da/6c757d?text=No+Photo' }}" 
+                         alt="Member Photo" 
+                         class="img-fluid rounded-circle mb-3" 
+                         style="width: 120px; height: 120px; object-fit: cover;">
+                    <h4 class="mb-0">{{ member.name }}</h4>
+                    <p class="text-muted mb-0">{{ member.email }}</p>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>NID</strong>
+                            <span>{{ member.nid }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Phone</strong>
+                            <span>{{ member.phone }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Member Since</strong>
+                            <span>{{ member.join_date.strftime('%d %B %Y') }}</span>
+                            
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex align-items-center">
+                    <i class="fas fa-user-circle me-2 text-primary"></i>
+                    <h5 class="mb-0">Personal Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" id="name" name="name" value="{{ member.name }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="father_name" class="form-label">Father's Name</label>
+                            <input type="text" id="father_name" name="father_name" value="{{ member.father_name or '' }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                            <input type="date" id="date_of_birth" name="date_of_birth" value="{{ member.date_of_birth.strftime('%Y-%m-%d') if member.date_of_birth }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                             <label for="gender" class="form-label">Gender</label>
+                             <select id="gender" name="gender" class="form-select">
+                                <option value="Male" {% if member.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if member.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if member.gender == 'Other' %}selected{% endif %}>Other</option>
+                             </select>
+                        </div>
+                         <div class="col-md-12">
+                            <label for="occupation" class="form-label">Occupation</label>
+                            <input type="text" id="occupation" name="occupation" value="{{ member.occupation or '' }}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                 <div class="card-header bg-light d-flex align-items-center">
+                    <i class="fas fa-address-book me-2 text-primary"></i>
+                    <h5 class="mb-0">Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                         <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" value="{{ member.email }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="text" id="phone" name="phone" value="{{ member.phone }}" class="form-control">
+                        </div>
+                         <div class="col-12">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea id="address" name="address" class="form-control">{{ member.address or '' }}</textarea>
+                        </div>
+                         <div class="col-12">
+                            <label for="nid" class="form-label">NID</label>
+                            <input type="text" id="nid" name="nid" value="{{ member.nid }}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex align-items-center">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>
+                    <h5 class="mb-0">Document Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Profile Photo</label>
+                            <div id="photo-display">
+                                <img src="{{ member.photo_url or 'https://via.placeholder.com/150/ced4da/6c757d?text=No+Photo' }}" class="img-thumbnail mb-2" style="max-height: 150px;" alt="Current Photo">
+                                <a href="{{ member.photo_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Full</a>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="change-photo-btn">Change</button>
+                            </div>
+                            <div id="photo-uploader" style="display: none;">
+                                <input type="file" name="photo_file" class="form-control" id="photo-input">
+                                <img id="photo-preview" class="img-thumbnail mt-2" style="max-height: 150px; display:none;" alt="New Photo Preview">
+                                <button type="button" class="btn btn-sm btn-secondary mt-2" id="cancel-photo-btn">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Oath Paper</label>
+                             <div id="oath-display">
+                                <a href="{{ member.oath_paper_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-file-pdf me-2"></i> View Current Oath Paper
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="change-oath-btn">Change</button>
+                            </div>
+                            <div id="oath-uploader" style="display: none;">
+                                <input type="file" name="oath_file" class="form-control">
+                                <button type="button" class="btn btn-sm btn-secondary mt-2" id="cancel-oath-btn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex align-items-center">
+                    <i class="fas fa-shield-alt me-2 text-primary"></i>
+                    <h5 class="mb-0">Security</h5>
+                </div>
+                <div class="card-body">
+                    <label for="password" class="form-label">New Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Leave empty to keep current password">
+                    <div class="form-text">Only fill this field if you want to change the member's password.</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('admin.manage_members') }}" class="btn btn-secondary btn-lg">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Interactive Photo Uploader ---
+    const changePhotoBtn = document.getElementById('change-photo-btn');
+    const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
+    const photoDisplay = document.getElementById('photo-display');
+    const photoUploader = document.getElementById('photo-uploader');
+    const photoInput = document.getElementById('photo-input');
+    const photoPreview = document.getElementById('photo-preview');
+
+    changePhotoBtn.addEventListener('click', () => {
+        photoDisplay.style.display = 'none';
+        photoUploader.style.display = 'block';
+    });
+
+    cancelPhotoBtn.addEventListener('click', () => {
+        photoDisplay.style.display = 'block';
+        photoUploader.style.display = 'none';
+        photoInput.value = ''; // Clear the selected file
+        photoPreview.style.display = 'none';
+    });
+
+    photoInput.addEventListener('change', event => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // --- Interactive Oath Paper Uploader ---
+    const changeOathBtn = document.getElementById('change-oath-btn');
+    const cancelOathBtn = document.getElementById('cancel-oath-btn');
+    const oathDisplay = document.getElementById('oath-display');
+    const oathUploader = document.getElementById('oath-uploader');
+    const oathInput = document.querySelector('input[name="oath_file"]');
+
+    changeOathBtn.addEventListener('click', () => {
+        oathDisplay.style.display = 'none';
+        oathUploader.style.display = 'block';
+    });
+
+    cancelOathBtn.addEventListener('click', () => {
+        oathDisplay.style.display = 'block';
+        oathUploader.style.display = 'none';
+        oathInput.value = ''; // Clear the selected file
+    });
+});
+</script>
+{% endblock %}

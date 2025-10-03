@@ -1,0 +1,24 @@
+{% set member_vote = member_votes.get(item.id) %}
+{% if member_vote is not none %}
+    <div class="your-vote-display">
+        <i class="fas fa-check-circle me-2"></i>You voted for Option {{ member_vote }}
+    </div>
+{% endif %}
+
+<ul class="results-list">
+    {% set total_votes = item.votes|length %}
+    {% for i in range(10) %}
+        {% set option_votes = item.votes|selectattr("choice", "equalto", i)|list %}
+        {% set count = option_votes|length %}
+        {% set percent = (count / total_votes * 100) if total_votes > 0 else 0 %}
+        <li class="result-item {% if i == member_vote %}voted-for{% endif %}">
+            <div class="result-label">
+                <span>Option {{ i }}</span>
+                <span>{{ count }} Vote(s)</span>
+            </div>
+            <div class="result-bar-container">
+                <div class="result-bar-fill" style="width: {{ percent }}%;"></div>
+            </div>
+        </li>
+    {% endfor %}
+</ul>

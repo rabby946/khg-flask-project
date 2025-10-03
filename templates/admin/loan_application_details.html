@@ -1,0 +1,154 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Loan Application Details{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for the Loan Application Details page */
+    :root {
+        --details-font: 'Poppins', sans-serif;
+        --details-primary: #0d6efd;
+        --details-cyan: #0dcaf0;
+        --details-success: #198754;
+        --details-danger: #dc3545;
+        --details-warning: #ffc107;
+        --details-info: #0dcaf0;
+        --details-card-bg: #ffffff;
+        --details-border: #e9ecef;
+        --details-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --details-text-dark: #212529;
+        --details-text-light: #6c757d;
+    }
+
+    .details-container { font-family: var(--details-font); animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 2rem; font-weight: 600; color: var(--details-text-dark); }
+
+    .details-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+    @media (min-width: 992px) { .details-grid { grid-template-columns: 3fr 2fr; } }
+
+    .details-card { background-color: var(--details-card-bg); border: 1px solid var(--details-border); border-radius: 1rem; box-shadow: var(--details-shadow); }
+    .details-card__header { padding: 1.5rem; border-bottom: 1px solid var(--details-border); }
+    .details-card__title { font-size: 1.25rem; font-weight: 600; margin: 0; }
+    .details-card__body { padding: 1.5rem; }
+
+    .info-list dt { font-weight: 500; color: var(--details-text-dark); margin-bottom: 0.25rem; }
+    .info-list dd { color: var(--details-text-light); margin-left: 0; margin-bottom: 1.25rem; }
+    .info-list dd.amount { font-size: 1.75rem; font-weight: 700; color: var(--details-primary); }
+    
+    .status-badge { font-size: 1rem; font-weight: 600; }
+
+    /* Admin Actions */
+    .admin-actions { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--details-border); }
+    .admin-actions .btn { margin-right: 0.75rem; margin-bottom: 0.5rem; font-weight: 500; }
+    
+    /* NEW: Vote Summary Stats */
+    .vote-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .summary-stat {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--details-border);
+    }
+    .summary-stat__label { font-size: 0.9rem; font-weight: 500; color: var(--details-text-light); margin-bottom: 0.25rem; }
+    .summary-stat__value { font-size: 1.75rem; font-weight: 700; color: var(--details-cyan); }
+    
+    .vote-table th, .vote-table td { font-size: .9rem; vertical-align: middle; }
+</style>
+
+<div class="details-container">
+    <div class="page-header">
+        <h1 class="page-title">Loan Application #{{ application.application_id }}</h1>
+        <a href="{{ url_for('admin.loans') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back to List</a>
+    </div>
+
+    <div class="details-grid">
+        <div class="details-card">
+            <div class="details-card__header">
+                <h2 class="details-card__title">Application Details</h2>
+            </div>
+            <div class="details-card__body">
+                <dl class="info-list">
+                    <div><dt>Applicant</dt><dd><a href="{{ url_for('admin.view_member', member_id=application.member_id) }}">{{ application.member.name }}</a></dd></div>
+                    <div><dt>Amount Requested</dt><dd class="amount">{{ "%.2f"|format(application.amount_requested) }} BDT</dd></div>
+                    <div><dt>Purpose / Cause</dt><dd>{{ application.cause or "Not specified" }}</dd></div>
+                    <div><dt>Current Status</dt><dd><span class="badge status-badge rounded-pill text-bg-{{ 'success' if application.status == 'approved' else 'danger' if application.status == 'rejected' else 'info' if application.status == 'voting' else 'secondary' }}">{{ application.status|capitalize }}</span></dd></div>
+                    <div><dt>Submitted At</dt><dd>{{ application.submitted_at.strftime('%d %B %Y, %I:%M %p') }}</dd></div>
+                </dl>
+                
+                <div class="admin-actions">
+                    <h3 class="h6 fw-bold mb-3">Admin Actions</h3>
+
+                    {% if application.status in ['pending', 'voting'] %}
+                    <form action="{{ url_for('admin.accept_loan', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to APPROVE this loan application?');">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check me-2"></i>Approve</button>
+                    </form>
+                    
+                    <form action="{{ url_for('admin.delete_loan_application', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to REJECT this loan application?');">
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-times me-2"></i>Delete</button>
+                    </form>
+                    {% endif %}
+
+                    {% if application.status == 'pending' %}
+                    <a href="{{ url_for('admin.set_for_voting', application_id=application.application_id) }}" class="btn btn-primary">
+                        <i class="fas fa-check-to-slot me-2"></i>Set for Voting
+                    </a>
+                    {% endif %}
+                </div>
+                </div>
+        </div>
+
+        <div class="details-card">
+            <div class="details-card__header">
+                <h2 class="details-card__title">Voting Results</h2>
+            </div>
+            <div class="details-card__body">
+                {% if application.status in ["voting", "approved", "rejected"] and votes %}
+                    {% set total_votes = votes|length %}
+                    {% set sum_of_choices = votes|sum(attribute='choice') %}
+                    {% set average_choice = (sum_of_choices / total_votes) if total_votes > 0 else 0 %}
+                    
+                    <div class="vote-summary-grid">
+                        <div class="summary-stat">
+                            <div class="summary-stat__label">Total Votes Cast</div>
+                            <div class="summary-stat__value">{{ total_votes }}</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-stat__label">Average Choice</div>
+                            <div class="summary-stat__value">{{ "%.2f"|format(average_choice) }}</div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="h6 fw-bold mb-3">Individual Votes</h3>
+                    <table class="table table-sm table-hover vote-table">
+                        <thead>
+                            <tr><th>Member</th><th>Choice (0-9)</th><th>Voted At</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for vote in votes %}
+                            <tr>
+                                <td>{{ vote.member.name }}</td>
+                                <td class="fw-bold">{{ vote.choice }}</td>
+                                <td>{{ vote.voted_at.strftime('%d %b, %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% elif application.status == "voting" and not votes %}
+                    <p class="text-muted text-center p-3">No votes have been cast yet.</p>
+                {% else %}
+                    <p class="text-muted text-center p-3">Voting has not been initiated for this application.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

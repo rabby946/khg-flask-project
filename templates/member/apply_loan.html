@@ -1,0 +1,206 @@
+{% extends "member/base.html" %}
+
+{% block title %}Apply for Loan{% endblock %}
+
+{% block member_content %}
+<style>
+    /* Scoped styles for the Loan Application page */
+    :root {
+        --loan-font: 'Poppins', sans-serif;
+        --loan-primary: #0ea5e9;
+        --loan-card-bg: #ffffff;
+        --loan-border: #dee2e6;
+        --loan-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        --loan-text-dark: #212529;
+        --loan-text-light: #6c757d;
+        --loan-info-bg: #f8f9fa;
+    }
+
+    .loan-apply-container {
+        font-family: var(--loan-font);
+        max-width: 1000px;
+        margin: 1rem auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+    @media (min-width: 992px) {
+        .loan-apply-container {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    .loan-form-card {
+        background-color: var(--loan-card-bg);
+        border: 1px solid var(--loan-border);
+        border-radius: 1rem;
+        box-shadow: var(--loan-shadow);
+        overflow: hidden;
+    }
+    .loan-form-header {
+        padding: 2rem 2.5rem;
+        border-bottom: 1px solid var(--loan-border);
+    }
+    .loan-form-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--loan-text-dark);
+        margin: 0;
+    }
+    .loan-form-subtitle {
+        font-size: 1rem;
+        color: var(--loan-text-light);
+        margin: 0.25rem 0 0 0;
+    }
+    .loan-form-body {
+        padding: 2.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    .input-group-text {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        font-weight: 500;
+        color: var(--loan-text-light);
+        pointer-events: none;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--loan-border);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control-currency {
+        padding-left: 4rem; /* Make space for the "BDT" text */
+    }
+    .form-control:focus {
+        border-color: var(--loan-primary);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 0.9rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        background-color: var(--loan-primary);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        margin-top: 1rem;
+    }
+    .submit-btn:hover {
+        background-color: #0b5ed7;
+    }
+
+    /* Info Card Styles */
+    .loan-info-card {
+        background-color: var(--loan-info-bg);
+        border: 1px solid var(--loan-border);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+    .info-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--loan-text-dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .info-card-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+    .info-card-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--loan-text-light);
+    }
+    .info-card-list i {
+        margin-top: 5px;
+        color: var(--loan-primary);
+    }
+</style>
+
+<div class="loan-apply-container">
+    <div class="loan-form-card">
+        <div class="loan-form-header">
+            <h2 class="loan-form-title">Loan Application</h2>
+            <p class="loan-form-subtitle">Please fill out the details below to submit your request.</p>
+        </div>
+        <div class="loan-form-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="amount" class="form-label">Loan Amount (BDT)</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control form-control-currency" id="amount" name="amount" placeholder="e.g., 50000  " required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cause" class="form-label">Purpose / Cause for Loan</label>
+                    <textarea class="form-control" id="cause" name="cause" rows="5" placeholder="Please describe in detail why you need this loan..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane me-2"></i>Submit Application
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="loan-info-card">
+        <h3 class="info-card-title">
+            <i class="fas fa-info-circle"></i>
+            Application Guidelines
+        </h3>
+        <ul class="info-card-list">
+            <li>
+                <i class="fas fa-check"></i>
+                <div>
+                    <strong>Review Process:</strong> All loan applications are reviewed by the committee on the 1st of each month.
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-check"></i>
+                <div>
+                    <strong>Eligibility:</strong> Please ensure your member profile and contact information are fully up-to-date before applying.
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-check"></i>
+                <div>
+                    <strong>Communication:</strong> You will be notified of the committee's decision via the notifications panel and by email.
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "member/base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block member_content %}
+<div class="container-fluid">
+
+    <h3 class="mb-4 text-center">{{ member.name | default('Member') }}'s History</h3>
+
+    <!-- Tabs for Donations & Loans -->
+    <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="donations-tab" data-bs-toggle="tab" data-bs-target="#donations" type="button" role="tab">Donations</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="loans-tab" data-bs-toggle="tab" data-bs-target="#loans" type="button" role="tab">Loans</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="historyTabsContent">
+        <!-- Donations Tab -->
+        <div class="tab-pane fade show active" id="donations" role="tabpanel">
+            {% if donations %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Amount (BDT)</th>
+                                <th>Date</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for donation in donations %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ donation.amount }}</td>
+                                <td>{{ donation.donated_at.strftime("%d %b %Y") }}</td>
+                                <td>{{ donation.notes or "-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-muted">No donations found.</p>
+            {% endif %}
+        </div>
+
+        <!-- Loans Tab -->
+        <div class="tab-pane fade" id="loans" role="tabpanel">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Amount (BDT)</th>
+                                <th>Issued Date</th>
+                                
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ loan.approved_amount }}</td>
+                                <td>{{ loan.issued_at.strftime("%d %b %Y") }}</td>
+                                
+                                <td>{{loan.status}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-muted">No loans found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Optional: enable Bootstrap tabs via JS
+    var triggerTabList = [].slice.call(document.querySelectorAll('#historyTabs button'))
+    triggerTabList.forEach(function(triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+        triggerEl.addEventListener('click', function(event) {
+            event.preventDefault()
+            tabTrigger.show()
+        })
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Member Panel{% endblock %} - Korje Hasanah Group</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --hub-primary: #0ea5e9;
+            --hub-light: #f8f9fa;
+            --hub-white: #ffffff;
+            --hub-dark: #212529;
+            --hub-muted: #6c757d;
+            --hub-border: #dee2e6;
+            --hub-shadow: 0 4px 12px rgba(0,0,0, .08);
+            --hub-font: 'Poppins', sans-serif;
+        }
+
+        body {
+            font-family: var(--hub-font);
+            background-color: var(--hub-light);
+            color: var(--hub-dark);
+        }
+        
+        .member-hub-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Modern Top Navigation Bar --- */
+        .hub-header {
+            background-color: var(--hub-white);
+            box-shadow: var(--hub-shadow);
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        /* --- NEW: Stylish SVG Logo --- */
+        .hub-header__brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--hub-dark);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .hub-header__logo-icon {
+            background-color: var(--hub-primary);
+            color: var(--hub-white);
+            border-radius: 0.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hub-header__logo-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* User Dropdown */
+        .user-menu { position: relative; }
+        .user-menu__toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50px;
+            transition: background-color 0.2s ease;
+        }
+        .user-menu__toggle:hover {
+            background-color: var(--hub-light);
+        }
+        .user-menu__avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-menu__name { font-weight: 600; display: none; }
+        @media (min-width: 768px) { .user-menu__name { display: inline; } }
+        
+        .user-menu__dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background-color: var(--hub-white);
+            border-radius: 0.75rem;
+            box-shadow: var(--hub-shadow);
+            width: 240px; /* Increased width for more items */
+            padding: 0.5rem 0;
+            list-style: none;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--hub-border);
+        }
+        .user-menu__dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .user-menu__dropdown a {
+            display: flex; /* Changed to flex for icon alignment */
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            color: var(--hub-dark);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .user-menu__dropdown a:hover { background-color: var(--hub-light); }
+        .user-menu__dropdown a .icon {
+            width: 20px;
+            text-align: center;
+            color: var(--hub-muted);
+        }
+        .user-menu__dropdown .dropdown-divider {
+            margin: 0.5rem 0;
+            border-top-color: var(--hub-border);
+        }
+        
+        /* Main Content Area */
+        .hub-content {
+            flex-grow: 1;
+            padding: 2rem;
+        }
+        @media (min-width: 768px) { .hub-content { padding: 2.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="member-hub-wrapper">
+        <header class="hub-header">
+            <a href="{{ url_for('public.home') }}" class="hub-header__brand" aria-label="KHG Home">
+                <span class="hub-header__logo-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                </span>
+            </a>
+
+            <div class="user-menu" id="user-menu">
+                <button class="user-menu__toggle" id="user-menu-toggle">
+                    <img src="{{ member.photo_url | default('https://via.placeholder.com/150') }}" class="user-menu__avatar" alt="User Avatar">
+                    <span class="user-menu__name">{{ member.name | default('Member') }}</span>
+                    <i class="fas fa-chevron-down fa-xs ms-2 text-muted"></i>
+                </button>
+                <ul class="user-menu__dropdown" id="user-menu-dropdown">
+                    <li><a href="{{ url_for('member.profile') }}"><i class="icon fas fa-user-circle"></i> Profile</a></li>
+                    <li><a href="{{ url_for('member.apply_loan') }}"><i class="icon fas fa-hand-holding-dollar"></i> Apply for Loan</a></li>
+                    <li><a href="{{ url_for('member.history') }}"><i class="icon fas fa-history"></i> History</a></li>
+                    <li><a href="{{ url_for('member.notifications') }}"><i class="icon fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="{{ url_for('member.voting') }}"><i class="icon fas fa-check-to-slot"></i> Voting</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="{{ url_for('member.edit_profile') }}"><i class="icon fas fa-cog"></i> Edit Profile</a></li>
+                    <li><a href="{{ url_for('member.change_password') }}"><i class="icon fas fa-key"></i> Change Password</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="{{ url_for('member.logout') }}" class="text-danger"><i class="icon fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </header>
+        
+        <main class="hub-content container-fluid">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block member_content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userMenu = document.getElementById('user-menu');
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+        if (userMenuToggle && userMenuDropdown) {
+            userMenuToggle.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevents the window click event from firing immediately
+                userMenuDropdown.classList.toggle('active');
+            });
+        }
+        
+        // Close dropdown if clicked outside
+        window.addEventListener('click', function(e) {
+            if (userMenuDropdown && userMenuDropdown.classList.contains('active')) {
+                userMenuDropdown.classList.remove('active');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

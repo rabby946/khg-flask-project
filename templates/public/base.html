@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}KHG - Professional Services{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --brand: #0ea5e9;
+            --brand-dark: #0284c7;
+            --border: #e2e8f0;
+            --border-subtle: #f1f5f9;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: var(--font-sans);
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page { min-height: 100dvh; display: flex; flex-direction: column; }
+
+        /* Header / Navbar Styles */
+        .header {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--header-bg); border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .nav {
+            max-width: 1280px; margin: 0 auto; display: flex;
+            align-items: center; justify-content: space-between;
+            padding: 0.8rem 1.5rem; height: 64px;
+        }
+        .brand {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            text-decoration: none; font-weight: 700; font-size: 1.1rem;
+            color: var(--text);
+        }
+        .brand .logo {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px -2px var(--brand);
+        }
+        .brand .logo svg { width: 18px; height: 18px; color: white; }
+        .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+        .nav-link {
+            text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px;
+            color: var(--text-muted); font-weight: 500;
+            transition: background 0.2s ease, color 0.2s ease;
+            font-size: 0.95rem;
+        }
+        .nav-link:hover { background: var(--border-subtle); color: var(--text); }
+        .nav-link.active { color: var(--brand-dark); font-weight: 600; }
+        .nav-link.cta { background: var(--brand); color: white; font-weight: 600; }
+        .nav-link.cta:hover { background: var(--brand-dark); color: white; }
+        
+        /* Mobile Menu Styles */
+        .menu-btn { display: none; }
+        .drawer {
+            position: fixed; inset: 0 0 0 auto; width: min(85%, 360px);
+            background: var(--card-bg); border-left: 1px solid var(--border);
+            translate: 100% 0; transition: translate 200ms ease-out;
+            z-index: 1001; display: flex; flex-direction: column;
+            padding: 1rem; gap: 0.5rem; box-shadow: var(--shadow-md);
+        }
+        .drawer.open { translate: 0 0; }
+        .scrim {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+            opacity: 0; pointer-events: none;
+            transition: opacity 200ms ease-out; z-index: 1000;
+        }
+        .scrim.open { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 860px) {
+            .nav { padding: 0.75rem 1rem; }
+            .nav-links { display: none; }
+            .menu-btn { display: block; }
+            .menu-btn button {
+                background: transparent; border: 1px solid var(--border); padding: 0.5rem;
+                border-radius: 8px; cursor: pointer; display: flex;
+                align-items: center; justify-content: center; transition: background 0.2s ease;
+            }
+            .menu-btn button:hover { background: var(--border-subtle); }
+            .menu-btn svg { width: 24px; height: 24px; color: var(--text-muted); }
+            .drawer a {
+                padding: 0.8rem 1rem; border-radius: 8px; text-decoration: none;
+                color: var(--text); font-weight: 500;
+            }
+            .drawer a:hover { background: var(--bg); }
+        }
+
+        /* Main and Footer Styles */
+        main {
+            max-width: 1280px; width: 100%; margin: 0 auto;
+            padding: 2.5rem 1.5rem; flex: 1 1 auto;
+        }
+        footer {
+            border-top: 1px solid var(--border); background: var(--card-bg);
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+        .footer-wrap {
+            max-width: 1280px; margin: 0 auto; padding: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem; flex-wrap: wrap;
+        }
+        .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s ease; }
+        .footer-links a:hover { color: var(--brand); text-decoration: underline; }
+
+        /* Toast Notification Styles */
+        .toast-notification {
+            position: fixed; top: 80px; right: 20px;
+            max-width: 350px; width: 90%;
+            background-color: #fff; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex; align-items: flex-start;
+            padding: 1rem; z-index: 9999;
+            border-left: 5px solid;
+            animation: toast-slide-in 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow: hidden;
+        }
+        .toast-notification[data-category="success"] { border-left-color: var(--success); }
+        .toast-notification[data-category="danger"],
+        .toast-notification[data-category="error"] { border-left-color: var(--danger); }
+        .toast-notification__icon { font-size: 1.5rem; margin-right: 1rem; line-height: 1; }
+        .toast-notification[data-category="success"] .toast-notification__icon { color: var(--success); }
+        .toast-notification[data-category="danger"] .toast-notification__icon,
+        .toast-notification[data-category="error"] .toast-notification__icon { color: var(--danger); }
+        .toast-notification__content { flex-grow: 1; }
+        .toast-notification__title {
+            font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem 0;
+            color: var(--text);
+        }
+        .toast-notification__message { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+        .toast-notification__close {
+            background: none; border: none; color: #adb5bd;
+            font-size: 1.5rem; font-weight: 300; cursor: pointer;
+            padding: 0 0 0 1rem; line-height: 1; opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        .toast-notification__close:hover { opacity: 1; }
+        .toast-notification__progress {
+            position: absolute; bottom: 0; left: 0;
+            height: 4px; width: 100%;
+            animation: toast-progress 5s linear forwards;
+        }
+        .toast-notification[data-category="success"] .toast-notification__progress { background-color: var(--success); }
+        .toast-notification[data-category="danger"] .toast-notification__progress,
+        .toast-notification[data-category="error"] .toast-notification__progress { background-color: var(--danger); }
+        @keyframes toast-slide-in { from { transform: translateX(110%); } to { transform: translateX(0); } }
+        @keyframes toast-slide-out { from { transform: translateX(0); } to { transform: translateX(110%); } }
+        @keyframes toast-progress { from { width: 100%; } to { width: 0%; } }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="page">
+        <header class="header" aria-label="Primary">
+            <nav class="nav">
+                <a class="brand" href="/" aria-label="KHG Home">
+                    <span class="logo" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                        </svg>
+                    </span>
+                    <span>KHG</span>
+                </a>
+                <div class="nav-links" role="menubar" aria-label="Primary navigation">
+                    {% set current_path = request.path %}
+                    <a class="nav-link {% if current_path == url_for('public.home') %}active{% endif %}" href="{{ url_for('public.home') }}">Home</a>
+                    <a class="nav-link {% if current_path.startswith('/instructions') %}active{% endif %}" href="/instructions">Instructions</a>
+                    <a class="nav-link {% if current_path.startswith('/about') %}active{% endif %}" href="/about">About Us</a>
+                    <a class="nav-link {% if current_path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
+                    <a class="nav-link {% if current_path.startswith('/login') %}active{% endif %}" href="{{ url_for('public.login') }}">Login</a>
+                    <a class="nav-link cta" href="/apply">Apply Membership</a>
+                </div>
+                <div class="menu-btn">
+                    <button id="menuToggle" aria-expanded="false" aria-controls="mobileDrawer" aria-label="Open menu">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+                </div>
+            </nav>
+            <div id="scrim" class="scrim" hidden></div>
+            <div id="mobileDrawer" class="drawer" aria-hidden="true">
+                {% set current_path = request.path %}
+                    <a class="nav-link {% if current_path == url_for('public.home') %}active{% endif %}" href="{{ url_for('public.home') }}">Home</a>
+                    <a class="nav-link {% if current_path.startswith('/instructions') %}active{% endif %}" href="/instructions">Instructions</a>
+                    <a class="nav-link {% if current_path.startswith('/about') %}active{% endif %}" href="/about">About Us</a>
+                    <a class="nav-link {% if current_path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
+                    <a class="nav-link {% if current_path.startswith('/login') %}active{% endif %}" href="{{ url_for('public.login') }}">Login</a>
+                    <a class="nav-link {% if current_path.startswith('/apply') %}active{% endif %}"  href="/apply">Apply Membership</a>
+            </div>
+        </header>
+
+        <main>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="toast-notification" data-category="{{ category }}">
+                            <div class="toast-notification__icon">
+                                <i class="fas {{ 'fa-times-circle' if category in ['danger', 'error'] else 'fa-check-circle' }}"></i>
+                            </div>
+                            <div class="toast-notification__content">
+                                <p class="toast-notification__title">{{ 'Error' if category in ['danger', 'error'] else 'Success' }}</p>
+                                <p class="toast-notification__message">{{ message }}</p>
+                            </div>
+                            <button class="toast-notification__close">&times;</button>
+                            <div class="toast-notification__progress"></div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer>
+            <div class="footer-wrap">
+                <div>&copy; 2025 KHG. All rights reserved.</div>
+                <div class="footer-links">
+                    <a href="/privacy">Privacy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="contact">Contact</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        (function () {
+            // Mobile drawer script
+            const toggle = document.getElementById('menuToggle');
+            const drawer = document.getElementById('mobileDrawer');
+            const scrim = document.getElementById('scrim');
+            if (!toggle || !drawer || !scrim) return;
+            function openDrawer() {
+                drawer.classList.add('open');
+                drawer.setAttribute('aria-hidden', 'false');
+                scrim.hidden = false;
+                scrim.classList.add('open');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                drawer.setAttribute('aria-hidden', 'true');
+                scrim.classList.remove('open');
+                setTimeout(() => { scrim.hidden = true; }, 210);
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+            toggle.addEventListener('click', () => {
+                const isOpen = drawer.classList.contains('open');
+                isOpen ? closeDrawer() : openDrawer();
+            });
+            scrim.addEventListener('click', closeDrawer);
+            drawer.querySelectorAll('[data-close]').forEach(a => a.addEventListener('click', closeDrawer));
+            window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer(); });
+
+            // Toast Notification JavaScript
+            document.querySelectorAll('.toast-notification').forEach(toast => {
+                const dismissToast = () => {
+                    toast.style.animation = 'toast-slide-out 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards';
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 500);
+                };
+                const autoDismissTimer = setTimeout(dismissToast, 5000);
+                const closeButton = toast.querySelector('.toast-notification__close');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => {
+                        clearTimeout(autoDismissTimer);
+                        dismissToast();
+                    });
+                }
+            });
+        })();
+    </script>
+
+    {% block scripts_extra %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,343 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<style>
+    /* --- COLOR & FONT PALETTE (inherits from base.html) --- */
+    :root {
+        --n-primary: var(--brand-primary, #0d6efd);
+        --n-bg: var(--bg-main, #f4f7fc);
+        --n-card-bg: var(--bg-header, #ffffff);
+        --n-text-dark: var(--text-dark, #212529);
+        --n-text-light: var(--text-muted, #64748b);
+        --n-border: var(--border-color, #e2e8f0);
+        --n-shadow: var(--shadow, 0 10px 30px rgba(0, 0, 0, 0.08));
+        --n-radius: var(--radius, 0.75rem);
+        --n-success: #198754;
+    }
+
+    /* --- PAGE-SPECIFIC LAYOUT --- */
+    .notifications-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .notifications-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--n-text-dark);
+    }
+
+    .notifications-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 992px) {
+        .notifications-grid {
+            grid-template-columns: 1fr 1.5fr;
+        }
+    }
+
+    /* --- CARD STYLING --- */
+    .notification-card {
+        background-color: var(--n-card-bg);
+        border: 1px solid var(--n-border);
+        border-radius: var(--n-radius);
+        padding: 2rem;
+        box-shadow: var(--n-shadow);
+        height: fit-content;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--n-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    /* --- NEW NOTIFICATION FORM STYLING --- */
+    .member-select-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .member-search {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--n-border);
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .member-checkboxes {
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid var(--n-border);
+        padding: 1rem;
+        border-radius: var(--n-radius);
+    }
+    
+    .form-check.is-hidden {
+        display: none;
+    }
+    
+    #selection-counter {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--n-text-light);
+    }
+
+    /* --- SUBMIT BUTTON --- */
+    .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        background: var(--n-success);
+        border-color: var(--n-success);
+    }
+    .submit-btn:disabled { cursor: wait; }
+
+    /* --- NOTIFICATION HISTORY TABLE --- */
+    .history-table .member-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .history-table .avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    /* --- RESPONSIVE TABLE (CARD VIEW) --- */
+    @media (max-width: 991px) {
+        .notifications-header h1 { font-size: 2rem; }
+        .notification-card { padding: 1.5rem; }
+        .card-title { font-size: 1.25rem; }
+
+        .history-table thead {
+            border: none; clip: rect(0 0 0 0); height: 1px; margin: -1px;
+            overflow: hidden; padding: 0; position: absolute; width: 1px;
+        }
+
+        .history-table tr {
+            display: block; border: 1px solid var(--n-border);
+            border-radius: var(--n-radius); padding: 1rem; margin-bottom: 1rem;
+        }
+        
+        .history-table td {
+            display: block; text-align: right; font-size: 0.95rem;
+            border-bottom: 1px dashed var(--n-border); padding: 0.75rem 0.5rem;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .history-table td:last-child { border-bottom: none; }
+
+        .history-table td::before {
+            content: attr(data-label); float: left; font-weight: 600;
+            color: var(--n-text-dark); text-align: left;
+        }
+        
+        .history-table .member-info { justify-content: flex-end; }
+    }
+</style>
+
+<header class="notifications-header">
+    <h1>Notifications Center</h1>
+</header>
+
+<div class="notifications-grid">
+    <div class="notification-card">
+        <h2 class="card-title"><i class="fas fa-paper-plane me-2"></i> Create Notification</h2>
+        <form id="notification-form" method="POST">
+            <div class="mb-3">
+                <label for="message" class="form-label">Message</label>
+                <textarea id="message" name="message" class="form-control" rows="4" required placeholder="Write your announcement or message here..."></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Recipients</label>
+                <input type="search" id="member-search" class="form-control member-search" placeholder="Search members by name, email, or phone...">
+                
+                <div class="member-select-header">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="select_all">
+                        <label class="form-check-label" for="select_all">Select All Visible</label>
+                    </div>
+                    <span id="selection-counter">Selected: 0</span>
+                </div>
+
+                <div class="member-checkboxes">
+                    {% if members %}
+                        {% for member in members %}
+                        <div class="form-check" data-name="{{ member.name|lower }}" data-contact="{{ (member.email or member.phone)|lower }}">
+                            <input class="form-check-input member-checkbox" type="checkbox" name="member_ids" value="{{ member.member_id }}" id="member{{ member.member_id }}">
+                            <label class="form-check-label" for="member{{ member.member_id }}">
+                                {{ member.name }} <small class="text-muted">({{ member.email or member.phone }})</small>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center m-0">No members available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" id="send-notification-btn" class="btn btn-success submit-btn mt-3">
+                <span class="btn-text">Send Notification</span>
+                <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </form>
+    </div>
+
+    <div class="notification-card">
+        <h2 class="card-title"><i class="fas fa-history me-2"></i> History</h2>
+        {% if notifications %}
+        <div class="table-responsive">
+            <table class="table align-middle history-table">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th style="width: 40%;">Message</th>
+                        <th>Sent At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notif in notifications %}
+                    <tr>
+                        <td data-label="Member">
+                            <div class="member-info">
+                                <img src="https://ui-avatars.com/api/?name={{ notif.member.name.replace(' ', '+') }}&background=random&color=fff&size=35&rounded=true" alt="{{ notif.member.name }}" class="avatar">
+                                <span>{{ notif.member.name }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Message" style="white-space: normal; word-wrap: break-word;">{{ notif.message }}</td>
+                        <td data-label="Sent At" data-timestamp="{{ notif.created_at.isoformat() }}">
+                            {{ notif.created_at.strftime("%d %b %Y") }}
+                        </td>
+                        <td data-label="Actions">
+                            <form action="{{ url_for('admin.delete_notification', notification_id=notif.notification_id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this notification?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center mt-4">No notifications sent yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('member-search');
+    const selectAllCheckbox = document.getElementById('select_all');
+    const memberChecks = document.querySelectorAll('.form-check[data-name]');
+    const memberCheckboxes = document.querySelectorAll('.member-checkbox');
+    const counter = document.getElementById('selection-counter');
+    const notificationForm = document.getElementById('notification-form');
+    const submitBtn = document.getElementById('send-notification-btn');
+
+    function updateCounter() {
+        const selectedCount = document.querySelectorAll('.member-checkbox:checked').length;
+        counter.textContent = `Selected: ${selectedCount}`;
+    }
+
+    // --- Member Search/Filter ---
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        memberChecks.forEach(check => {
+            const name = check.dataset.name;
+            const contact = check.dataset.contact;
+            const isVisible = name.includes(searchTerm) || contact.includes(searchTerm);
+            check.classList.toggle('is-hidden', !isVisible);
+        });
+        selectAllCheckbox.checked = false; 
+    });
+
+    // --- Select All Visible Logic ---
+    selectAllCheckbox.addEventListener('change', function() {
+        document.querySelectorAll('.form-check:not(.is-hidden) .member-checkbox').forEach(cb => {
+            cb.checked = this.checked;
+        });
+        updateCounter();
+    });
+
+    // --- Update counter on individual checkbox click ---
+    memberCheckboxes.forEach(cb => cb.addEventListener('change', updateCounter));
+
+    // --- Form Submission Guard ---
+    notificationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const selectedCount = document.querySelectorAll('.member-checkbox:checked').length;
+        if (selectedCount === 0) {
+            alert('Please select at least one member to send the notification to.');
+            return;
+        }
+
+        const confirmMsg = `You are about to send this notification to ${selectedCount} member(s).\n\nAre you sure you want to proceed?`;
+        
+        if (confirm(confirmMsg)) {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.btn-text').textContent = 'Sending...';
+            submitBtn.querySelector('.btn-spinner').style.display = 'inline-block';
+            e.target.submit();
+        }
+    });
+
+    // --- Relative Time Formatting ---
+    function formatTimeAgo(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const seconds = Math.round((now - date) / 1000);
+        const minutes = Math.round(seconds / 60);
+        const hours = Math.round(minutes / 60);
+        const days = Math.round(hours / 24);
+
+        if (seconds < 5) return "just now";
+        if (seconds < 60) return `${seconds} seconds ago`;
+        if (minutes === 1) return "a minute ago";
+        if (minutes < 60) return `${minutes} minutes ago`;
+        if (hours === 1) return "an hour ago";
+        if (hours < 24) return `${hours} hours ago`;
+        if (days === 1) return "yesterday";
+        if (days < 30) return `${days} days ago`;
+        
+        return date.toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    document.querySelectorAll('[data-timestamp]').forEach(el => {
+        el.textContent = formatTimeAgo(el.dataset.timestamp);
+    });
+    
+    // Initial call to set the counter
+    updateCounter();
+});
+</script>
+{% endblock %}

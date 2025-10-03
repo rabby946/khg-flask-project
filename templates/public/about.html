@@ -1,0 +1,417 @@
+{% extends "public/base.html" %}
+
+{% block title %}About Us | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* * This stylesheet uses the CSS variables defined in your public/base.html
+     * for seamless visual consistency (colors, fonts, shadows, etc.).
+    */
+
+    /* --- General Container & Layout --- */
+    .about-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-top: 1.5rem; /* Adjust based on global header height if needed */
+        padding-bottom: 4rem;
+    }
+
+    /* --- Hero Header Section --- */
+    .about-hero {
+        text-align: center;
+        margin-bottom: 4rem;
+        padding: 2rem 0;
+        animation: fadeIn 1s ease-out;
+    }
+
+    .about-hero h1 {
+        font-size: 3.2rem;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+        animation: slideInUp 0.8s ease-out 0.2s backwards;
+    }
+
+    .about-hero p {
+        font-size: 1.3rem;
+        color: var(--text-muted);
+        max-width: 750px;
+        margin: 0 auto;
+        line-height: 1.7;
+        animation: slideInUp 0.8s ease-out 0.4s backwards;
+    }
+
+    /* --- Common Section Styling --- */
+    .about-section {
+        background: var(--card-bg); /* Default background for sections */
+        border-radius: var(--radius);
+        padding: 3rem;
+        margin-bottom: 3.5rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        opacity: 0; /* Hidden for scroll animation */
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    /* Special background for alternating sections or highlights */
+    .about-section.highlight {
+        background-color: var(--bg);
+        border-color: var(--border-subtle);
+    }
+    /* Class added by JS on scroll */
+    .about-section.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .about-section h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        justify-content: center;
+    }
+    .about-section h2 i {
+        font-size: 1.8rem;
+        color: var(--brand-dark);
+    }
+
+    .about-section p {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--text);
+        margin-bottom: 1rem;
+    }
+    .about-section p:last-of-type {
+        margin-bottom: 0;
+    }
+    .about-section ul {
+        list-style: disc;
+        margin-left: 1.5rem;
+        color: var(--text);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+    .about-section ul li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- Mission & Vision Grid --- */
+    .mission-vision-grid {
+        display: grid;
+        grid-template-columns: 1fr; /* Single column by default */
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    @media (min-width: 768px) {
+        .mission-vision-grid {
+            grid-template-columns: repeat(2, 1fr); /* Two columns on larger screens */
+        }
+    }
+
+    .mission-vision-grid .grid-item {
+        background-color: var(--bg);
+        padding: 2.5rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .mission-vision-grid .grid-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .mission-vision-grid h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: var(--brand-dark);
+    }
+    .mission-vision-grid h3 i {
+        font-size: 1.4rem;
+        color: var(--brand);
+    }
+    .mission-vision-grid p {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+
+    /* Nested list inside mission */
+    .mission-vision-grid .grid-item ul {
+        list-style: disc;
+        margin-left: 1.25rem;
+        margin-top: 0.75rem;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* --- Values Section specific styling --- */
+    .values-section ul {
+        list-style: none; /* Remove default list style */
+        padding-left: 0;
+    }
+    .values-section ul li {
+        margin-bottom: 1rem;
+        padding-left: 0; /* Remove default padding */
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        font-size: 1.05rem;
+        color: var(--text);
+        line-height: 1.6;
+    }
+    .values-section ul li strong {
+        color: var(--brand-dark);
+    }
+    .values-section ul li::before {
+        content: '\2022'; /* Unicode bullet point */
+        color: var(--brand); /* Brand color for bullets */
+        font-weight: bold;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        font-size: 1.2em;
+        flex-shrink: 0;
+    }
+
+    /* --- Call to Action --- */
+    .cta-section {
+        text-align: center;
+        margin-top: 5rem;
+        padding: 3rem;
+        background: linear-gradient(135deg, var(--brand-light), var(--brand));
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        color: white;
+        opacity: 0; /* Hidden for scroll animation */
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .cta-section.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .cta-section h2 {
+        color: white;
+        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+        font-weight: 800;
+    }
+    .cta-section p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        max-width: 700px;
+        margin: 0 auto 2.5rem auto;
+        line-height: 1.8;
+    }
+    .cta-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: white;
+        color: var(--brand-dark);
+        padding: 1.1rem 2.8rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.15rem;
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    .cta-button:hover {
+        transform: translateY(-5px) scale(1.02);
+        background-color: var(--brand-lighter);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+    }
+    .cta-button i {
+        font-size: 1.3rem;
+    }
+
+    /* --- Responsive Adjustments --- */
+    @media (max-width: 768px) {
+        .about-container {
+            padding: 1rem;
+        }
+        .about-hero h1 {
+            font-size: 2.5rem;
+        }
+        .about-hero p {
+            font-size: 1rem;
+        }
+        .about-section {
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .about-section h2 {
+            font-size: 1.8rem;
+            flex-direction: column; /* Stack icon and text */
+            gap: 0.5rem;
+        }
+        .about-section h2 i {
+            font-size: 1.5rem;
+        }
+        .mission-vision-grid .grid-item {
+            padding: 1.5rem;
+        }
+        .mission-vision-grid h3 {
+            font-size: 1.3rem;
+            flex-direction: column; /* Stack icon and text */
+            gap: 0.5rem;
+        }
+        .mission-vision-grid h3 i {
+            font-size: 1.2rem;
+        }
+        .cta-section {
+            padding: 2rem;
+        }
+        .cta-section h2 {
+            font-size: 2rem;
+        }
+        .cta-section p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .cta-button {
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* --- Animation Keyframes --- */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-container">
+
+    <div class="about-hero">
+        <h1>About Korje Hasanah Group (KHG)</h1>
+        <p>
+            We are a faith-driven microfinance platform with the mission to transform society by eliminating interest-based borrowing and empowering communities with ethical, interest-free financial solutions.
+        </p>
+    </div>
+
+    <div class="about-section is-animated">
+        <h2><i class="fa fa-bullseye"></i> Our Motivation</h2>
+        <p>
+            In today’s economy, most financial systems operate on interest-based lending — a practice we believe is ethically wrong and harmful to society. KHG was founded to create a sustainable, transparent, and ethical alternative.
+            Our mission is not just to provide interest-free loans, but to build a movement that dismantles the current interest-based economy and replaces it with a cooperative, faith-aligned system where financial help is a right, not a profit-driven commodity.
+        </p>
+        <p>
+            We are inspired by the vision of a society where people live without the burden of riba (interest), and where financial support fosters entrepreneurship, dignity, and mutual care.
+        </p>
+    </div>
+
+    <div class="about-section highlight is-animated">
+        <div class="mission-vision-grid">
+            <div class="grid-item">
+                <h3><i class="fa fa-lightbulb"></i> Our Mission</h3>
+                <p>
+                    To destroy the current interest-based economy by creating an alternative platform for ethical microfinance that:
+                    <ul>
+                        <li>Provides interest-free loans to members in need.</li>
+                        <li>Encourages entrepreneurial ventures.</li>
+                        <li>Promotes financial independence without exploitation.</li>
+                        <li>Creates a community built on trust, transparency, and cooperation.</li>
+                    </ul>
+                </p>
+            </div>
+            <div class="grid-item">
+                <h3><i class="fa fa-eye"></i> Our Vision</h3>
+                <p>
+                    To build a world where financial services are free from riba, enabling communities to thrive without reliance on haram banking systems.
+                    We envision a future where every member becomes a self-reliant entrepreneur empowered to achieve their goals, supported by a strong community foundation.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-section is-animated">
+        <h2><i class="fa fa-cogs"></i> How KHG Operates</h2>
+        <p>
+            Korje Hasanah Group functions as a transparent, community-based microfinance network.
+            Membership is open to anyone who shares our values and is committed to our mission. Members apply with a signed oath paper, agreeing to abide by our ethical and operational guidelines.
+        </p>
+        <p>
+            Loans are issued based on member applications, repayment history, and community voting. Our system allows members to actively participate in approving loans, ensuring fairness and accountability.
+            All donations, repayments, and loan histories are fully transparent and available to members through their dashboards.
+        </p>
+        <p>
+            Our operation is guided by these principles:
+        </p>
+        <ul>
+            <li>Transparency in all processes.</li>
+            <li>Mutual accountability among members.</li>
+            <li>Strict adherence to ethical lending principles.</li>
+            <li>Support for member entrepreneurship.</li>
+        </ul>
+    </div>
+
+    <div class="about-section highlight is-animated values-section">
+        <h2><i class="fa fa-heart"></i> Our Core Values</h2>
+        <ul>
+            <li><strong>Faith & Ethics:</strong> All actions are rooted in Islamic principles, avoiding riba and exploitation.</li>
+            <li><strong>Transparency:</strong> Open access to all transactions and decision-making processes.</li>
+            <li><strong>Mutual Support:</strong> Members supporting each other financially and socially.</li>
+            <li><strong>Empowerment:</strong> Helping members achieve independence and financial growth.</li>
+            <li><strong>Community:</strong> Building a network of trust and cooperation.</li>
+        </ul>
+    </div>
+
+    <div class="cta-section is-animated">
+        <h2><i class="fa fa-hands-helping"></i> Join Our Mission</h2>
+        <p>
+            Korje Hasanah Group invites you to be part of a movement that challenges the current economic system and builds a fairer financial future.
+            Whether you wish to become a member, apply for a loan, or donate to support others, your contribution matters.
+        </p>
+        <a href="/apply" class="cta-button">Become a Member <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sections = document.querySelectorAll('.about-section, .cta-section');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Stop observing once animated
+                }
+            });
+        }, {
+            threshold: 0.1, // Trigger when 10% of the item is visible
+            rootMargin: "0px 0px -50px 0px" // Start loading slightly before it hits the bottom of the viewport
+        });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    });
+</script>
+{% endblock %}

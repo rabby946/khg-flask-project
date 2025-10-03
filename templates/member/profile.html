@@ -1,0 +1,308 @@
+{% extends "member/base.html" %}
+
+{% block title %}Member Details{% endblock %}
+
+{% block member_content %}
+<style>
+    /* Scoped styles for the new Member Dossier page */
+    :root {
+        --details-font: 'Poppins', sans-serif;
+        --details-primary: #0dcaf0; /* VIBRANT CYAN */
+        --details-success: #198754;
+        --details-warning: #ffc107;
+        --details-danger: #dc3545;
+        --details-card-bg: #ffffff;
+        --details-border: #e9ecef;
+        --details-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --details-text-dark: #212529;
+        --details-text-light: #6c757d;
+    }
+
+    .details-page-container {
+        font-family: var(--details-font);
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Profile Header Card */
+    .profile-summary-card {
+        background-color: var(--details-card-bg);
+        border-radius: 1rem; padding: 2rem;
+        margin-bottom: 2rem; display: flex;
+        flex-direction: column; align-items: center; text-align: center;
+        box-shadow: var(--details-shadow);
+    }
+    @media (min-width: 768px) {
+        .profile-summary-card { flex-direction: row; text-align: left; align-items: flex-start; }
+    }
+    .profile-summary__avatar {
+        width: 100px; height: 100px; border-radius: 50%;
+        object-fit: cover; margin-bottom: 1rem; border: 4px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+        .profile-summary__avatar { margin-bottom: 0; margin-right: 1.5rem; }
+    }
+    .profile-summary__info { flex-grow: 1; }
+    .profile-summary__name { font-size: 1.75rem; font-weight: 600; color: var(--details-text-dark); margin: 0; }
+    .profile-summary__meta { font-size: 1rem; color: var(--details-text-light); margin: 0.25rem 0 0 0; }
+    
+    /* ====================================================================== */
+    /* START: New Financial Snapshot Section                                  */
+    /* ====================================================================== */
+    .snapshot-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        border-radius: 1rem;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .stat-card__icon {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .stat-card__info-label {
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    .stat-card__info-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    /* Green card for zero due */
+    .stat-card--zero-due {
+        background-color: #e8f5e9;
+        color: var(--details-success);
+    }
+    .stat-card--zero-due .stat-card__icon {
+        background-color: var(--details-success);
+        color: #fff;
+    }
+
+    /* Red card for has due */
+    .stat-card--has-due {
+        background-color: #fdeaea;
+        color: var(--details-danger);
+    }
+    .stat-card--has-due .stat-card__icon {
+        background-color: var(--details-danger);
+        color: #fff;
+    }
+    /* ====================================================================== */
+    /* END: New Financial Snapshot Section                                    */
+    /* ====================================================================== */
+
+    .filter-bar { position: relative; margin-bottom: 1.5rem; }
+    .filter-bar .form-control { padding-left: 2.5rem; border-radius: 50px; }
+    .filter-bar .fa-search { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--details-text-light); }
+    
+    /* Other styles remain the same... */
+    .nav-tabs { border-bottom: 2px solid var(--details-border); }
+    .nav-tabs .nav-link { border: none; border-bottom: 3px solid transparent; color: var(--details-text-light); font-weight: 500; padding: 0.75rem 1rem; }
+    .nav-tabs .nav-link.active { color: var(--details-primary); border-bottom-color: var(--details-primary); font-weight: 600; }
+    .tab-content { background-color: var(--details-card-bg); border: 1px solid var(--details-border); border-top: none; border-radius: 0 0 1rem 1rem; padding: 2.5rem; box-shadow: var(--details-shadow); min-height: 300px; }
+    .details-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+    @media (min-width: 768px) { .details-grid { grid-template-columns: 1fr 1fr; } }
+    .detail-item { display: flex; align-items: flex-start; gap: 1rem; }
+    .detail-item__icon { font-size: 1.25rem; color: var(--details-primary); margin-top: 5px; }
+    .detail-item__label { font-weight: 500; color: var(--details-text-dark); margin-bottom: 0.25rem; }
+    .detail-item__value { color: var(--details-text-light); }
+    .table { width: 100%; }
+    .table th { font-weight: 600; text-align: left; color: var(--details-text-light); border-bottom: 2px solid var(--details-border); }
+    .table td { color: var(--details-text-dark); vertical-align: middle; }
+    .table-responsive { min-height: 200px; }
+    .no-results-row { display: none; }
+</style>
+
+<div class="details-page-container">
+    <div class="profile-summary-card">
+        <img src="{{ member.photo_url or url_for('static', filename='images/default-profile.png') }}" alt="Member Photo" class="profile-summary__avatar">
+        <div class="profile-summary__info">
+            <h1 class="profile-summary__name">{{ member.name }}</h1>
+            <p class="profile-summary__meta"><b>Member ID :</b> {{ member.member_id }}</p>
+            <p class="profile-summary__meta">{{ member.email }}</p>
+            <p class="profile-summary__meta">Member Since: {{ member.join_date.strftime('%d %B %Y') }}</p>
+        </div>
+    </div>
+
+    <div class="snapshot-grid">
+        {% if due_amount == 0 %}
+        <div class="stat-card stat-card--zero-due">
+            <div class="stat-card__icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-card__info">
+                <div class="stat-card__info-label">Current Due Amount</div>
+                <div class="stat-card__info-value">No due</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="stat-card stat-card--has-due">
+            <div class="stat-card__icon"><i class="fas fa-exclamation-circle"></i></div>
+            <div class="stat-card__info">
+                <div class="stat-card__info-label">Unpaid Loan Balance</div>
+                <div class="stat-card__info-value">{{ "%.2f"|format(due_amount) }} ৳</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="filter-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" class="form-control" id="table-filter" placeholder="Type to filter the active table...">
+    </div>
+
+    <ul class="nav nav-tabs" id="memberTab" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#details-pane" type="button">Personal Details</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#loans-pane" type="button">Loan History</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#transactions-pane" type="button">Transaction History</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#applications-pane" type="button">Loan Applications</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#donations-pane" type="button">Donation History</button></li>
+    </ul>
+
+    <div class="tab-content" id="memberTabContent">
+        <div class="tab-pane fade show active" id="details-pane" role="tabpanel">
+            <div class="details-grid">
+                <div class="detail-item"><i class="fas fa-user detail-item__icon"></i><div><div class="detail-item__label">Father's Name</div><div class="detail-item__value">{{ member.father_name or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-phone detail-item__icon"></i><div><div class="detail-item__label">Phone Number</div><div class="detail-item__value">{{ member.phone or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-map-marker-alt detail-item__icon"></i><div><div class="detail-item__label">Address</div><div class="detail-item__value">{{ member.address or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-venus-mars detail-item__icon"></i><div><div class="detail-item__label">Gender</div><div class="detail-item__value">{{ member.gender or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-birthday-cake detail-item__icon"></i><div><div class="detail-item__label">Date of Birth</div><div class="detail-item__value">{{ member.date_of_birth.strftime('%d %B %Y') if member.date_of_birth else 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-briefcase detail-item__icon"></i><div><div class="detail-item__label">Occupation</div><div class="detail-item__value">{{ member.occupation or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-id-card detail-item__icon"></i><div><div class="detail-item__label">National ID (NID)</div><div class="detail-item__value">{{ member.nid or 'N/A' }}</div></div></div>
+                <div class="detail-item"><i class="fas fa-file-signature detail-item__icon"></i><div><div class="detail-item__label">Signed Oath Paper</div><div class="detail-item__value">{% if member.oath_paper_url %}<a href="{{ member.oath_paper_url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Document</a>{% else %}<span class="text-muted">Not uploaded</span>{% endif %}</div></div></div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade table-responsive" id="loans-pane" role="tabpanel">
+            <table class="table table-hover filterable-table">
+                <thead><tr><th class="py-2">Loan ID</th><th class="py-2">Total Amount</th><th class="py-2">Due</th><th class="py-2">Status</th><th class="py-2">Issued At</th></tr></thead>
+                <tbody>
+                    {% for loan in member.loans %}
+                    <tr>
+                        <td class="py-3">#{{ loan.loan_id }}</td>
+                        <td class="py-3">{{ "%.2f"|format(loan.approved_amount) }} BDT</td>
+                        <td class="py-3">{{ "%.2f"|format(loan.remaining_amount) }} BDT</td>
+                        <td class="py-3"><span class="badge rounded-pill text-bg-{{ 'success' if loan.status == 'Paid' else 'warning' if loan.status == 'Ongoing' else 'secondary' }}">
+                            {% if loan.status == "paid": %}
+                                <h7 style="color: rgb(156, 255, 156);">{{ loan.status }}</h7>
+                            {% else: %}
+                                <h7 style="color: #ff9d9d;">{{ loan.status }}</h7>
+                            {% endif %}
+                        </span></td>
+                        <td class="py-3">{{ loan.issued_at.strftime('%d %b %Y') if loan.issued_at else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="no-results-row"><td colspan="5" class="text-center p-4 text-muted">No results found for your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade table-responsive" id="transactions-pane" role="tabpanel">
+            <table class="table table-hover filterable-table">
+                <thead><tr><th class="py-2">Loan ID</th><th class="py-2">Type</th><th class="py-2">Amount</th><th class="py-2">Date</th></tr></thead>
+                <tbody>
+                    {% for loan in member.loans %}{% for trx in loan.transactions %}
+                    <tr>
+                        <td class="py-3">#{{ trx.loan_id }}</td>
+                        <td class="py-3"><span class="badge rounded-pill text-bg-{{ 'success' if trx.transaction_type == 'repay' else 'danger' }}">{{ trx.transaction_type|capitalize }}</span></td>
+                        <td class="py-3">{{ "%.2f"|format(trx.amount) }} BDT</td>
+                        <td class="py-3">{{ trx.created_at.strftime('%d %b %Y') }}</td>
+                    </tr>
+                    {% endfor %}{% endfor %}
+                    <tr class="no-results-row"><td colspan="4" class="text-center p-4 text-muted">No results found for your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="tab-pane fade table-responsive" id="applications-pane" role="tabpanel">
+            <table class="table table-hover filterable-table">
+                <thead><tr><th class="py-2">Cause</th><th class="py-2">Amount Requested</th><th class="py-2">Status</th><th class="py-2">Submitted At</th></tr></thead>
+                <tbody>
+                    {% for app in member.loan_applications %}
+                    <tr>
+                        <td class="py-3">{{ app.cause }}</td>
+                        <td class="py-3">{{ "%.2f"|format(app.amount_requested) }} BDT</td>
+                        <td class="py-3"><span class="badge rounded-pill text-bg-{{ 'success' if app.status == 'approved' else 'danger' if app.status == 'rejected' else 'info' }}">{{ app.status|capitalize }}</span></td>
+                        <td class="py-3">{{ app.submitted_at.strftime('%d %b %Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                     <tr class="no-results-row"><td colspan="4" class="text-center p-4 text-muted">No results found for your search.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade table-responsive" id="donations-pane" role="tabpanel">
+             <table class="table table-hover filterable-table">
+                <thead><tr><th class="py-2">Date</th><th class="py-2">Amount</th><th class="py-2">Type</th></tr></thead>
+                <tbody>
+                    {% for donation in member.donations %}
+                    <tr>
+                        <td class="py-3">{{ donation.donated_at.strftime('%d %b %Y') }}</td>
+                        <td class="py-3">{{ "%.2f"|format(donation.amount) }} BDT</td>
+                        <td class="py-3">{{ donation.donation_type|capitalize }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="no-results-row"><td colspan="3" class="text-center p-4 text-muted">No results found for your search.</td></tr>
+                </tbody>
+             </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterInput = document.getElementById('table-filter');
+
+    const filterTable = (table, searchTerm) => {
+        const rows = table.querySelectorAll('tbody tr:not(.no-results-row)');
+        const noResultsRow = table.querySelector('.no-results-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            if (rowText.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        if (noResultsRow) {
+            noResultsRow.style.display = (visibleCount === 0) ? '' : 'none';
+        }
+    };
+    
+    filterInput.addEventListener('keyup', function() {
+        const searchTerm = filterInput.value.toLowerCase();
+        const activePane = document.querySelector('.tab-pane.show.active');
+        const activeTable = activePane ? activePane.querySelector('.filterable-table') : null;
+        if (activeTable) {
+            filterTable(activeTable, searchTerm);
+        }
+    });
+
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function() {
+            filterInput.value = '';
+            document.querySelectorAll('.filterable-table').forEach(table => {
+                filterTable(table, '');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

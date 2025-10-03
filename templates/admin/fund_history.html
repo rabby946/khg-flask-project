@@ -1,0 +1,207 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Fund History{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for the Fund History page */
+    :root {
+        --fh-font: 'Poppins', sans-serif;
+        --fh-primary: #0dcaf0; /* Cyan accent color */
+        --fh-success: #198754;
+        --fh-danger: #dc3545;
+        --fh-card-bg: #ffffff;
+        --fh-border: #e9ecef;
+        --fh-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --fh-text-dark: #212529;
+        --fh-text-light: #6c757d;
+    }
+
+    .fund-history-container {
+        font-family: var(--fh-font);
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--fh-text-dark);
+    }
+    .export-btn {
+        background-color: var(--fh-primary);
+        color: #fff;
+        border: none;
+    }
+    .export-btn:hover {
+        background-color: #0baccc;
+    }
+
+    /* Collapsible Filter Panel */
+    .filter-card {
+        background-color: var(--fh-card-bg);
+        border: 1px solid var(--fh-border);
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+    .filter-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--fh-border);
+        padding: 1rem 1.5rem;
+    }
+    .filter-card .card-header a {
+        text-decoration: none;
+        color: var(--fh-text-dark);
+        font-weight: 600;
+    }
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+    .filter-form .form-label {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .filter-form .btn {
+        height: 100%;
+    }
+
+    /* Main Data Table Card */
+    .data-table-card {
+        background-color: var(--fh-card-bg);
+        border: 1px solid var(--fh-border);
+        border-radius: 1rem;
+        box-shadow: var(--fh-shadow);
+        overflow: hidden; /* Important for border radius on table */
+    }
+    .data-table-card .card-body {
+        padding: 0;
+    }
+    .table {
+        margin-bottom: 0;
+    }
+    .table th {
+        font-weight: 600;
+        color: var(--fh-text-light);
+        border: none;
+        background-color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+    .table td {
+        color: var(--fh-text-dark);
+        vertical-align: middle;
+        font-weight: 500;
+    }
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .amount-in { color: var(--fh-success); }
+    .amount-out { color: var(--fh-danger); }
+</style>
+
+<div class="fund-history-container">
+    <div class="page-header">
+        <h2 class="page-title">Fund History</h2>
+        <a href="#" class="btn export-btn"><i class="fas fa-file-export me-2"></i>Export as CSV</a>
+    </div>
+
+    <div class="accordion" id="filterAccordion">
+        <div class="filter-card">
+            <div class="card-header" id="headingOne">
+                <a href="#" class="d-block" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                    <i class="fas fa-filter me-2"></i> Filter Records
+                </a>
+            </div>
+            <div id="collapseOne" class="collapse show" data-bs-parent="#filterAccordion">
+                <div class="card-body">
+                    <form method="get" class="row g-3 filter-form">
+                        <div class="col-md-3">
+                            <label class="form-label">Sort by Time</label>
+                            <select name="sort" class="form-select">
+                                <option value="desc" {% if sort_order=="desc" %}selected{% endif %}>Newest First</option>
+                                <option value="asc" {% if sort_order=="asc" %}selected{% endif %}>Oldest First</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="all" {% if fund_type=="all" %}selected{% endif %}>All Types</option>
+                                <option value="donation" {% if fund_type=="donation" %}selected{% endif %}>Donations</option>
+                                <option value="loan_given" {% if fund_type=="loan_given" %}selected{% endif %}>Loan Given</option>
+                                <option value="loan_repay" {% if fund_type=="loan_repay" %}selected{% endif %}>Loan Repayments</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Member</label>
+                            <select name="member_id" class="form-select">
+                                <option value="all" {% if member_id=="all" %}selected{% endif %}>All Members</option>
+                                {% for m in members %}
+                                <option value="{{m.member_id}}" {% if member_id|string == m.member_id|string %}selected{% endif %}>
+                                    {{ m.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-primary w-100">Apply Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="data-table-card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Member</th>
+                            <th class="p-3">Category</th>
+                            <th class="p-3">Subtype/Details</th>
+                            <th class="p-3 text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td class="p-3">{{ r.date.strftime('%d %b %Y, %I:%M %p') }}</td>
+                            <td class="p-3">{{ r.member_name }}</td>
+                            <td class="p-3">
+                                {% if r.category == "donation" %}
+                                    <span class="badge text-bg-success">Donation</span>
+                                {% elif r.category == "borrow" %}
+                                    <span class="badge text-bg-danger">Loan Given</span>
+                                {% elif r.category == "repay" %}
+                                    <span class="badge text-bg-primary">Loan Repay</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-muted">{{ r.subtype }}</td>
+                            <td class="p-3 text-end fw-bold">
+                                {% if r.category == "borrow" %}
+                                    <span class="amount-out">- {{ "%.2f"|format(r.amount) }} ৳</span>
+                                {% else %}
+                                     <span class="amount-in">+ {{ "%.2f"|format(r.amount) }} ৳</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center p-5 text-muted">No records found matching your criteria.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

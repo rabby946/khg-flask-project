@@ -1,0 +1,239 @@
+{% extends "public/base.html" %}
+
+{% block title %}Login Portal | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+    main {
+        padding: 0 !important;
+        max-width: none;
+        animation: none;
+    }
+
+    .login-portal-wrapper {
+        font-family: var(--font-sans);
+        min-height: calc(100dvh - 128px);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        perspective: 1500px;
+    }
+
+    /* Animated Gradient Background */
+    .login-portal-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(-45deg, #f7f4fd, #f0edfed9, #e3fafe, #ecffed);
+        background-size: 400% 400%;
+        animation: gradientBG 18s ease infinite;
+        z-index: 1;
+    }
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    a.text-decoration-none {
+        color: var(--brand);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    a.text-decoration-none:hover {
+        text-decoration: underline;
+    }
+
+    .login-card-scene {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 420px;
+        height: 530px;
+    }
+    .login-card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+    .login-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+
+    .login-card__face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        padding: 2.5rem;
+        color: var(--text-dark);
+        animation: fadeIn 0.7s ease-out forwards;
+    }
+    .login-card__face--back {
+        transform: rotateY(180deg);
+    }
+    
+    .login-header { text-align: center; margin-bottom: 2rem; }
+    .login-title { font-size: 1.75rem; font-weight: 600; color: var(--text-dark); }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+        display: block;
+        color: var(--text-muted);
+    }
+
+    .input-group { position: relative; }
+    .form-control {
+        background-color: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+        padding-left: 2.75rem;
+    }
+    .form-control::placeholder { color: #9ca3af; }
+    .form-control:focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        border-color: var(--brand);
+        color: var(--text-dark);
+    }
+    .input-group-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: var(--text-muted); }
+    
+    .btn-submit {
+        font-weight: 600;
+        padding: 0.75rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease-out;
+        border: none;
+        cursor: pointer; /* <-- THE FIX IS HERE */
+    }
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.05);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-member { background-color: var(--brand); }
+    .btn-admin { background-color: var(--brand); }
+
+    .switch-form-link {
+        display: block; text-align: center; margin-top: 1.5rem;
+        color: var(--text-light); text-decoration: none;
+        font-weight: 500; cursor: pointer; transition: color 0.2s ease;
+    }
+    .switch-form-link:hover { color: var(--brand); text-decoration: underline; }
+    
+    .logged-in-link { display: block; text-align: center; margin-top: 1rem; padding: 0.75rem; background-color: var(--border-subtle); border-radius: 8px; color: var(--text-dark); font-weight: 500; text-decoration: none; transition: background-color 0.2s ease; }
+    .logged-in-link:hover { background-color: var(--border); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="login-portal-wrapper">
+    <div class="login-card-scene">
+        <div class="login-card" id="login-card">
+            
+            <div class="login-card__face login-card__face--front">
+                <div class="login-header">
+                    <h1 class="login-title">Member Login</h1>
+                </div>
+                <form method="POST" action="{{ url_for('member.login') }}">
+                    <div class="form-group">
+                        <label for="member-nid">NID Number</label>
+                        <div class="input-group">
+                            <i class="fas fa-id-card input-group-icon"></i>
+                            <input type="text" class="form-control" id="member-nid" name="nid" placeholder="" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="member-password">Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock input-group-icon"></i>
+                            <input type="password" class="form-control" id="member-password" name="password" placeholder="" required>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('public.forgot_password') }}" class="d-block text-center mb-3 text-decoration-none">
+                        Forgot your password?
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-submit w-100 mt-3 btn-member">Login</button>
+                    
+                </form>
+
+                {% if session.get('member_logged_in') %}
+                    <a href="{{ url_for('member.profile') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Your Profile</a>
+                {% endif %}
+
+                <a class="switch-form-link" data-flip-target="login-card">Are you an Admin? Login here.</a>
+            </div>
+
+            <div class="login-card__face login-card__face--back">
+                <div class="login-header">
+                    <h1 class="login-title">Admin Login</h1>
+                </div>
+                <form method="POST" action="{{ url_for('admin.login') }}">
+                    <div class="form-group">
+                        <label for="admin-username">Username</label>
+                        <div class="input-group">
+                            <i class="fas fa-user-shield input-group-icon"></i>
+                            <input type="text" class="form-control" id="admin-username" name="username" placeholder="" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <div class="input-group">
+                            <i class="fas fa-key input-group-icon"></i>
+                            <input type="password" class="form-control" id="admin-password" name="password" placeholder="" required>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('public.forgot_password') }}" class="d-block text-center mb-3 text-decoration-none">
+                        Forgot your password?
+                    </a>
+                    <button type="submit" class="btn btn-dark btn-submit w-100 mt-3 btn-admin">Login</button>
+                </form>
+
+                {% if session.get('admin_logged_in') %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Dashboard</a>
+                {% endif %}
+                
+                <a class="switch-form-link" data-flip-target="login-card">Are you a Member? Login here.</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const flipLinks = document.querySelectorAll('[data-flip-target]');
+    
+    flipLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const cardId = this.dataset.flipTarget;
+            const card = document.getElementById(cardId);
+            if (card) {
+                card.classList.toggle('is-flipped');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

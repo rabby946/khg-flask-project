@@ -1,0 +1,344 @@
+{% extends "public/base.html" %}
+
+{% block title %}Instructions | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* * This design uses an interactive "Guided Path" with accordion functionality for a focused, user-friendly experience. */
+
+    /* --- Page Header & General Styling --- */
+    .instructions-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-top: 1rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+        animation: fadeInUp 0.7s ease-out;
+    }
+    .page-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 1rem;
+    }
+    .page-header p {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+
+    /* --- The Guided Path (Timeline) --- */
+    .instructions-path {
+        position: relative;
+    }
+
+    .instructions-path::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 35px;
+        bottom: 25px;
+        width: 3px;
+        background-color: var(--border);
+        border-radius: 2px;
+    }
+
+    .path-stop {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding-left: 90px;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .path-stop.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .path-stop-icon {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 70px;
+        height: 70px;
+        background-color: var(--card-bg);
+        border: 3px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--brand);
+        z-index: 2;
+    }
+    
+    .path-content {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        transition: margin-bottom 0.4s ease-in-out;
+    }
+
+    /* --- Clickable Header --- */
+    .path-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem 2rem;
+        cursor: pointer;
+    }
+    .header-text h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+    
+    .toggle-indicator {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .path-stop.is-open .toggle-indicator {
+        transform: rotate(180deg);
+        color: var(--brand);
+    }
+
+    /* --- Collapsible Details --- */
+    .path-details {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.7s cubic-bezier(0.25, 1, 0.5, 1), padding 0.7s ease-in-out;
+        padding: 0 2rem; /* No padding when closed */
+    }
+    .path-stop.is-open .path-details {
+        max-height: 1500px; /* A large value to allow content to expand */
+        padding: 0 2rem 2rem 2rem; /* Add padding back when open */
+    }
+    .path-details > p { /* Intro paragraphs inside the details */
+        font-size: 1rem;
+        color: var(--text-muted);
+        margin-top: 0;
+    }
+    
+    /* Step-by-Step List Styling */
+    .steps-list { list-style: none; padding: 1rem 0 0 0; border-top: 1px solid var(--border); counter-reset: step-counter; }
+    .steps-list li { counter-increment: step-counter; display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+    .steps-list li::before { content: counter(step-counter); background: var(--brand); color: white; font-weight: 600; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-details { font-size: 1rem; color: var(--text); line-height: 1.7; }
+    .step-details strong { color: var(--text); }
+    .step-details .sub-list { list-style: disc; padding-left: 2rem; margin-top: 0.5rem; }
+    
+    .callout { background: var(--border-subtle); border-left: 4px solid var(--brand); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.95rem; }
+    .callout.important { border-left-color: var(--danger); background-color: rgba(220, 38, 38, 0.05); }
+    .callout a { color: var(--brand-dark); font-weight: 600; text-decoration: none; }
+    .callout a:hover { text-decoration: underline; }
+
+    /* --- CTA Footer --- */
+    .cta-footer { text-align: center; padding: 2rem 0; opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+    .cta-footer.is-visible { opacity: 1; transform: translateY(0); }
+    .cta-button { display: inline-flex; align-items: center; gap: 0.75rem; background: var(--brand); color: white; padding: 1rem 2.5rem; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: background-color 0.3s ease, transform 0.2s ease; }
+    .cta-button:hover { background: var(--brand-dark); transform: scale(1.05); }
+    
+    @media (max-width: 768px) {
+        .instructions-path::before { left: 24px; }
+        .path-stop { padding-left: 65px; }
+        .path-stop-icon { width: 50px; height: 50px; font-size: 1.5rem; }
+        .page-header h1 { font-size: 2.2rem; }
+        .path-header { padding: 1rem 1.5rem; }
+        .header-text h2 { font-size: 1.4rem; }
+        .path-details { padding: 0 1.5rem; }
+        .path-stop.is-open .path-details { padding: 0 1.5rem 1.5rem 1.5rem; }
+    }
+    
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="instructions-container">
+
+    <div class="page-header">
+        <h1>Your Journey with KHG</h1>
+        <p>A simple, step-by-step guide to becoming a part of our community and utilizing its benefits. Click any step to see the details.</p>
+    </div>
+
+    <div class="instructions-path">
+
+        <div class="path-stop">
+            <div class="path-stop-icon"><i class="fas fa-user-plus"></i></div>
+            <div class="path-content">
+                <div class="path-header">
+                    <div class="header-text">
+                        <h2>1. How to Become a Member</h2>
+                    </div>
+                    <div class="toggle-indicator"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="path-details">
+                    <p>Becoming a member of Korje Hasanah Group (KHG) allows you to access interest-free loans, participate in voting, give donations, and be part of a community of mutual financial support.</p>
+                    <p><strong>Why membership matters:</strong> Your membership ensures you can access funds in times of need and also contribute to helping others in the community. Membership also builds trust and accountability.</p>
+                    <ol class="steps-list">
+                        <li><div class="step-details"><strong>Download the Membership Oath Paper:</strong> Go to <a href="/downloads/oath_paper.pdf" target="_blank">this link</a> and download the oath document. This outlines your responsibilities and commitment to KHG.</div></li>
+                        <li><div class="step-details"><strong>Print and Sign:</strong> Print the oath paper and sign it physically. Ensure your signature matches your official ID or documents. This step is vital as it represents your formal commitment.</div></li>
+                        <li><div class="step-details"><strong>Fill Membership Application:</strong> Go to the <em>Apply Membership</em> page, fill in your details including full name, phone number, email, and upload your signed oath paper.</div></li>
+                        <li><div class="step-details"><strong>Submit Your Application:</strong> After verifying your details, click submit. Your application will be reviewed by the admin team.</div></li>
+                        <li><div class="step-details"><strong>Approval Process:</strong> Admin reviews take about 3–5 business days. You will receive notification via email and dashboard updates once approved.</div></li>
+                    </ol>
+                    <div class="callout important">Always provide accurate and valid details. False information may cause rejection and delay your approval.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="path-stop">
+            <div class="path-stop-icon"><i class="fas fa-money-check-alt"></i></div>
+            <div class="path-content">
+                 <div class="path-header">
+                    <div class="header-text">
+                        <h2>2. How to Take Loans</h2>
+                    </div>
+                    <div class="toggle-indicator"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="path-details">
+                    <p>Interest-free loans are the core benefit of being a KHG member. Loan access depends on your membership duration, repayment history, and community voting results.</p>
+                    <ol class="steps-list">
+                        <li><div class="step-details"><strong>Log in to Your Dashboard:</strong> Use your registered credentials to log in.</div></li>
+                        <li><div class="step-details"><strong>Navigate to Loan Application:</strong> From the dashboard menu, click <em>Loan Application</em>.</div></li>
+                        <li><div class="step-details"><strong>Complete Loan Form:</strong> Enter all necessary details:
+                            <ul class="sub-list">
+                                <li>Requested amount</li>
+                                <li>Loan purpose (detailed)</li>
+                                <li>Proposed repayment plan</li>
+                                <li>Upload supporting documents if needed</li>
+                            </ul>
+                        </div></li>
+                        <li><div class="step-details"><strong>Submit Application:</strong> Review carefully and submit. Your application enters the review process.</div></li>
+                        <li><div class="step-details"><strong>Community Voting:</strong> Members with voting rights will review your request. Voting is part of KHG’s transparency and fairness process.</div></li>
+                        <li><div class="step-details"><strong>Approval & Disbursement:</strong> Once approved, funds will be transferred to your registered account/payment method. You will be notified of the exact date.</div></li>
+                    </ol>
+                    <div class="callout important">Loan amount and eligibility depend on your repayment history and community voting results.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="path-stop">
+            <div class="path-stop-icon"><i class="fas fa-donate"></i></div>
+            <div class="path-content">
+                <div class="path-header">
+                    <div class="header-text">
+                        <h2>3. How to Give Donations</h2>
+                    </div>
+                    <div class="toggle-indicator"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="path-details">
+                    <p>Donations keep KHG operational and help members in need. Every contribution counts and strengthens our community.</p>
+                    <ol class="steps-list">
+                         <li><div class="step-details"><strong>Select a Payment Method:</strong> You may use Bkash, Nagad, or Rocket for your donation.</div></li>
+                         <li><div class="step-details"><strong>Send to the Following Accounts:</strong><div class="callout">Bkash / Nagad: <strong>01968048008</strong><br>Rocket: <strong>01736583351</strong> (last digit: 3)<br>Selfin: <strong>01736583351</strong></div></div></li>
+                         <li><div class="step-details"><strong>Use Proper Reference Format:</strong><div class="callout">Member ID : Donation Type<br>Example: <em>1234 : General Donation</em></div></div></li>
+                         <li><div class="step-details"><strong>Confirm Payment:</strong> After sending money, confirm via the <em>Contact</em> page and upload your transaction proof if available.</div></li>
+                    </ol>
+                    <div class="callout important">আসসালামু আলাইকুম। ভাই আমরা প্রতিমাসে ১-১০ তারিখের ভিতরে কর্জে হাসানার টাকা দিয়ে দিব ইন শা আল্লহ।</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="path-stop">
+            <div class="path-stop-icon"><i class="fas fa-undo-alt"></i></div>
+            <div class="path-content">
+                <div class="path-header">
+                    <div class="header-text">
+                        <h2>4. How to Repay Loans</h2>
+                    </div>
+                    <div class="toggle-indicator"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="path-details">
+                    <p>Timely repayment helps maintain KHG’s sustainability and ensures continued access to loans for members.</p>
+                    <ol class="steps-list">
+                        <li><div class="step-details"><strong>Login to Your Dashboard.</strong></div></li>
+                        <li><div class="step-details"><strong>Go to Loan Repayment Section.</strong></div></li>
+                        <li><div class="step-details"><strong>Send Payment Using:</strong><div class="callout">Bkash / Nagad: <strong>01968048008</strong><br>Rocket: <strong>01736583351</strong> (last digit: 3)<br>Selfin: <strong>01736583351</strong></div></div></li>
+                        <li><div class="step-details"><strong>Use Reference Format:</strong><div class="callout">Loan Repay : Member ID<br>Example: <em>Loan Repay : 1234</em></div></div></li>
+                        <li><div class="step-details"><strong>Confirm Payment:</strong> Upload proof of repayment in your dashboard or contact support.</div></li>
+                    </ol>
+                    <div class="callout important">Late repayment affects your future loan eligibility and member standing.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="path-stop">
+            <div class="path-stop-icon"><i class="fas fa-user-shield"></i></div>
+            <div class="path-content">
+                <div class="path-header">
+                    <div class="header-text">
+                        <h2>5. Admin Guidelines</h2>
+                    </div>
+                    <div class="toggle-indicator"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="path-details">
+                    <p>Admins are responsible for KHG’s smooth operation. They manage memberships, loans, donations, and member disputes.</p>
+                    <ol class="steps-list">
+                        <li><div class="step-details">Verify membership applications and oath papers thoroughly.</div></li>
+                        <li><div class="step-details">Review loan requests based on repayment history and eligibility.</div></li>
+                        <li><div class="step-details">Track donations and repayments meticulously.</div></li>
+                        <li><div class="step-details">Update dashboards regularly for transparency.</div></li>
+                        <li><div class="step-details">Handle disputes fairly and maintain accurate logs.</div></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-footer">
+        <a href="/apply" class="cta-button">
+            Start Your Application <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // --- Accordion Logic for Instructions ---
+    const allStops = document.querySelectorAll('.path-stop');
+    allStops.forEach(stop => {
+        const header = stop.querySelector('.path-header');
+        header.addEventListener('click', () => {
+            const isOpen = stop.classList.contains('is-open');
+
+            // Close all other stops
+            allStops.forEach(otherStop => {
+                otherStop.classList.remove('is-open');
+            });
+
+            // If the clicked one wasn't already open, open it.
+            if (!isOpen) {
+                stop.classList.add('is-open');
+            }
+        });
+    });
+
+    // --- Scroll-triggered Animations ---
+    const elementsToAnimate = document.querySelectorAll('.path-stop, .cta-footer');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    elementsToAnimate.forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ subject }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', Arial, sans-serif; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(135deg, #f5f3ff, #ecfeff);">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background: transparent;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table role="presentation" style="width: 100%; max-width: 650px; border-collapse: collapse; border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.1);">
+                    
+                    <tr>
+                        <td style="padding: 30px; background: linear-gradient(135deg, #0dcaf0, #6f42c1); text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; font-family: 'Poppins', Arial, sans-serif;">KHG Notification</h1>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 30px 30px 20px 30px; background-color: #ecfeff; border-bottom: 1px solid #d0f5fc;">
+                                        <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: #087990;">{{ subject }}</h2>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 30px; font-size: 16px; color: #334155; line-height: 1.7;">
+                                        {{ body|safe }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px 30px 30px 30px; background-color: #f5f3ff; border-top: 1px solid #e9e4ff;">
+                                        <p style="margin: 0; font-size: 16px; color: #334155;">Regards,</p>
+                                        <p style="margin: 5px 0 0 0; font-size: 16px; font-weight: 600; color: #4338ca;">{{ sender.full_name }}</p>
+                                        <p style="margin: 5px 0 0 0; font-size: 15px; color: #64748b;">{{ sender.role }}, KHG</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #0dcaf0, #6f42c1); padding: 20px 30px; text-align: center; border-radius: 0 0 12px 12px;">
+                            <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.8);">&copy; {{ year }} KHG. All rights reserved.</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

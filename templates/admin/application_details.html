@@ -1,0 +1,68 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Application Details - {{ application.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Application Details</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    {% if application.photo_url %}
+                        <img src="{{ application.photo_url }}" 
+                             alt="Profile Photo" 
+                             class="img-fluid rounded shadow-sm mb-3">
+                    {% else %}
+                        <div class="bg-light text-muted p-5 rounded">No Photo</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <table class="table table-borderless">
+                        <tr><th>Name:</th><td>{{ application.name }}</td></tr>
+                        <tr><th>Father’s Name:</th><td>{{ application.father_name or 'N/A' }}</td></tr>
+                        <tr><th>Email:</th><td>{{ application.email }}</td></tr>
+                        <tr><th>Phone:</th><td>{{ application.phone }}</td></tr>
+                        <tr><th>Address:</th><td>{{ application.address }}</td></tr>
+                        <tr><th>Gender:</th><td>{{ application.gender or 'N/A' }}</td></tr>
+                        <tr><th>Date of Birth:</th><td>{{ application.date_of_birth.strftime("%d %b %Y") if application.date_of_birth else 'N/A' }}</td></tr>
+                        <tr><th>NID:</th><td>{{ application.nid or 'N/A' }}</td></tr>
+                        <tr><th>Occupation:</th><td>{{ application.occupation or 'N/A' }}</td></tr>
+                        <tr><th>Status:</th>
+                            <td>
+                                {% if application.status == "pending" %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif application.status == "approved" %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr><th>Applied At:</th><td>{{ application.applied_at.strftime("%d %b %Y, %I:%M %p") }}</td></tr>
+                        <tr>
+                            <th>Oath Paper:</th>
+                            <td>
+                                {% if application.oath_paper_url %}
+                                    <a href="{{ application.oath_paper_url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Oath Paper</a>
+                                {% else %}
+                                    <em class="text-muted">Not Uploaded</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="{{ url_for('admin.memberships') }}" class="btn btn-secondary">← Back</a>
+                {% if application.status == "pending" %}
+                    <a href="{{ url_for('admin.approve_membership', app_id=application.id) }}" class="btn btn-success">Approve</a>
+                    <a href="{{ url_for('admin.reject_membership', app_id=application.id) }}" class="btn btn-danger">Reject</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
