@@ -1,0 +1,215 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Loan Applications{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for the Loan Applications page */
+    :root {
+        --loans-font: 'Poppins', sans-serif;
+        --loans-primary: #0d6efd;
+        --loans-success: #198754;
+        --loans-danger: #dc3545;
+        --loans-warning: #ffc107;
+        --loans-info: #0dcaf0;
+        --loans-card-bg: #ffffff;
+        --loans-border: #e9ecef;
+        --loans-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --loans-text-dark: #212529;
+        --loans-text-light: #6c757d;
+    }
+
+    .loans-container {
+        font-family: var(--loans-font);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--loans-text-dark);
+    }
+
+    .controls-card {
+        background-color: var(--loans-card-bg);
+        border: 1px solid var(--loans-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+
+    .data-table-card {
+        background-color: var(--loans-card-bg);
+        border: 1px solid var(--loans-border);
+        border-radius: 1rem;
+        box-shadow: var(--loans-shadow);
+        overflow: hidden;
+    }
+    .data-table-card .card-body { padding: 0; }
+    
+    .table { margin-bottom: 0; }
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        color: var(--loans-text-light);
+        background-color: #f8f9fa;
+        border: none;
+    }
+    .table td {
+        color: var(--loans-text-dark);
+        vertical-align: middle;
+        font-weight: 500;
+    }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .table .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Staggered Row Animation */
+    .table tbody tr {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInSlideUp 0.5s ease-out forwards;
+    }
+    @keyframes fadeInSlideUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .no-results-row { display: none; }
+</style>
+
+<div class="loans-container">
+    <div class="page-header">
+        <h1 class="page-title">Loan Applications</h1>
+    </div>
+
+    <div class="controls-card">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <select class="form-select" id="status-filter">
+                    <option value="all" selected>Filter by All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="voting">Voting</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <input type="text" class="form-control" id="search-filter" placeholder="Search by applicant name, cause, or amount...">
+            </div>
+        </div>
+    </div>
+
+    <div class="data-table-card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="applications-table">
+                    <thead>
+                        <tr>
+                            <th class="p-3">Applicant</th>
+                            <th class="p-3">Amount Requested</th>
+                            <th class="p-3">Cause</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if applications %}
+                            {% for app in applications %}
+                            <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;">
+                                <td class="p-3">
+                                    <a href="{{ url_for('admin.view_member', member_id=app.member_id) }}" class="text-decoration-none fw-bold">
+                                        {{ app.member.name }}
+                                    </a>
+                                </td>
+                                <td class="p-3">{{ "%.2f"|format(app.amount_requested) }} BDT</td>
+                                <td class="p-3">{{ (app.cause or 'Not specified')|truncate(40) }}</td>
+                                <td class="p-3">
+                                    <span class="badge rounded-pill text-bg-{{ 'success' if app.status == 'approved' else 'danger' if app.status == 'rejected' else 'info' if app.status == 'voting' else 'warning' }}">
+                                        {{ app.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td class="p-3">
+                                    <div class="actions-cell">
+                                        <a href="{{ url_for('admin.loan_application_details', application_id=app.application_id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('admin.delete_loan_application', application_id=app.application_id) }}" onsubmit="return confirm('Are you sure you want to REJECT this application? This action cannot be undone.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject Application">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                        <tr class="no-results-row">
+                            <td colspan="5" class="text-center p-5 text-muted">
+                                No applications found matching your criteria.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if not applications %}
+            <div class="card-body text-center p-5 text-muted">
+                No loan applications found.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusFilter = document.getElementById('status-filter');
+    const searchFilter = document.getElementById('search-filter');
+    const table = document.getElementById('applications-table');
+    const rows = table.querySelectorAll('tbody tr:not(.no-results-row)');
+    const noResultsRow = table.querySelector('.no-results-row');
+
+    const filterTable = () => {
+        const statusValue = statusFilter.value.toLowerCase();
+        const searchValue = searchFilter.value.toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const statusCell = row.cells[3].textContent.trim().toLowerCase();
+            const rowText = row.textContent.toLowerCase();
+            
+            const statusMatch = (statusValue === 'all' || statusCell === statusValue);
+            const searchMatch = rowText.includes(searchValue);
+
+            if (statusMatch && searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (noResultsRow) {
+            noResultsRow.style.display = (visibleCount === 0) ? '' : 'none';
+        }
+    };
+
+    statusFilter.addEventListener('change', filterTable);
+    searchFilter.addEventListener('keyup', filterTable);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,361 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Add Donation{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+<style>
+    /* --- COLOR & FONT PALETTE (uses variables from your base.html) --- */
+    :root {
+        --d-primary: var(--brand-primary, #0d6efd);
+        --d-bg: var(--bg-main, #f4f7fc);
+        --d-card-bg: var(--bg-header, #ffffff);
+        --d-text-dark: var(--text-dark, #212529);
+        --d-text-light: var(--text-muted, #495057);
+        --d-border: var(--border-color, #dee2e6);
+        --d-shadow: var(--shadow, 0 10px 30px rgba(0, 0, 0, 0.08));
+        --d-radius: var(--radius, 0.75rem);
+    }
+
+    /* --- PAGE-SPECIFIC LAYOUT --- */
+    .donation-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .donation-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--d-text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .donation-header p {
+        font-size: 1.1rem;
+        color: var(--d-text-light);
+    }
+
+    .donation-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 992px) {
+        .donation-grid {
+            grid-template-columns: 1fr 1.5fr;
+        }
+    }
+
+    /* --- CARD STYLING --- */
+    .donation-card {
+        background-color: var(--d-card-bg);
+        border: 1px solid var(--d-border);
+        border-radius: var(--d-radius);
+        padding: 2rem;
+        box-shadow: var(--d-shadow);
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--d-primary);
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--d-primary);
+        padding-bottom: 0.75rem;
+    }
+
+    /* --- FORM STYLING --- */
+    .form-label {
+        font-weight: 500;
+        color: var(--d-text-light);
+    }
+
+    .form-control, .form-select, .ts-control {
+        border-radius: 0.5rem !important;
+        border: 1px solid var(--d-border) !important;
+        padding: 0.75rem 1rem !important;
+        background-color: var(--bg-main);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .form-control:focus, .form-select:focus, .ts-control.focus {
+        border-color: var(--d-primary) !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+        background-color: var(--d-card-bg);
+    }
+    
+    .ts-dropdown { border-radius: 0.5rem; }
+    .ts-dropdown .option { padding: 0.75rem 1rem; }
+
+    #custom_note_group {
+        transition: all 0.4s ease-in-out;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        margin-bottom: 0 !important;
+    }
+
+    #custom_note_group.is-visible {
+        max-height: 100px;
+        opacity: 1;
+        margin-bottom: 1rem !important;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 0.85rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        background: var(--d-primary);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        background: #0b5ed7;
+    }
+    
+    .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+    
+    .btn-spinner {
+        margin-left: 0.5rem;
+    }
+
+    /* --- TABLE STYLING (Desktop) --- */
+    .table-card .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background-color: var(--d-bg);
+        color: var(--d-text-dark);
+        font-weight: 600;
+        border-bottom-width: 2px;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--d-bg);
+    }
+    
+    /* --- NEW: Advanced Responsiveness for Mobile & Tablets --- */
+    @media (max-width: 991px) {
+        .donation-header h1 { font-size: 2rem; }
+        .donation-header p { font-size: 1rem; }
+        .donation-card { padding: 1.5rem; }
+        .card-title { font-size: 1.25rem; }
+
+        /* --- Responsive Table Transformation to Card View --- */
+        .responsive-table-cards {
+            border: none;
+            box-shadow: none;
+        }
+
+        .responsive-table-cards thead {
+            /* Hide the table headers, they are not needed in card view */
+            border: none;
+            clip: rect(0 0 0 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            width: 1px;
+        }
+
+        .responsive-table-cards tr {
+            /* Each table row becomes a card */
+            display: block;
+            background-color: var(--d-card-bg);
+            border: 1px solid var(--d-border);
+            border-radius: var(--d-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .responsive-table-cards td {
+            /* Table cells become full-width blocks within the card */
+            display: block;
+            text-align: right; /* Align the data value to the right */
+            font-size: 0.95rem;
+            border-bottom: 1px dashed var(--d-border);
+            padding: 0.75rem 0.5rem;
+        }
+
+        .responsive-table-cards td:last-child {
+            border-bottom: none; /* No border for the last item in the card */
+        }
+
+        .responsive-table-cards td::before {
+            /* Use the data-label for the card's labels */
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: var(--d-text-dark);
+            text-align: left;
+        }
+    }
+</style>
+
+<header class="donation-header">
+    <h1>Donation Management</h1>
+    <p>Securely record and view recent contributions from members.</p>
+</header>
+
+<div class="donation-grid">
+    <div class="donation-card form-card">
+        <h2 class="card-title"><i class="fas fa-hand-holding-heart me-2"></i> Add New Donation</h2>
+        <form id="donation-form" method="POST" action="{{ url_for('admin.add_donation') }}">
+            <div class="mb-3">
+                <label for="member_id" class="form-label">Select Member</label>
+                <select id="member_id" name="member_id" required placeholder="Search for a member...">
+                    <option value="">-- Select Member --</option>
+                    {% for member in members %}
+                    <option value="{{ member.member_id }}">{{ member.name }} (ID: {{ member.member_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="amount" class="form-label">Donation Amount (BDT)</label>
+                <input type="number" class="form-control" id="amount" name="amount" min="1" step="0.01" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="donation_type" class="form-label">Donation Type</label>
+                <select class="form-select" id="donation_type" name="donation_type" required>
+                    <option value="">-- Select Donation Type --</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="General">General</option>
+                    <option value="Extra Repay">Extra Repay</option>
+                    <option value="Emergency Relief">Emergency Relief</option>
+                    <option value="Special Cause">Special Cause</option>
+                    <option value="Zakat">Zakat</option>
+                    <option value="Charity Drive">Charity Drive</option>
+                    <option value="Round-Up">Round-Up</option>
+                    <option value="Legacy / Memorial">Legacy / Memorial</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="custom_note_group">
+                <label for="custom_note" class="form-label">Please specify</label>
+                <input type="text" class="form-control" id="custom_note" name="custom_note" placeholder="Enter custom donation type">
+            </div>
+
+            <button type="submit" class="btn submit-btn mt-3" id="submit-donation-btn">
+                <span class="btn-text">Add Donation</span>
+                <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </form>
+    </div>
+
+    <div class="donation-card table-card">
+        <h2 class="card-title"><i class="fas fa-history me-2"></i> Recent Donations</h2>
+        <table class="table table-hover align-middle responsive-table-cards">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Member</th>
+                    <th>Amount (BDT)</th>
+                    <th>Type / Note</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donation in donations %}
+                <tr>
+                    <td data-label="ID">#{{ donation.donation_id }}</td>
+                    <td data-label="Member">{{ donation.member.name }}</td>
+                    <td data-label="Amount (BDT)">{{ "%.2f"|format(donation.amount) }}</td>
+                    <td data-label="Type / Note">
+                        {% if donation.donation_type == 'Other' %}
+                            <span class="badge bg-secondary">{{ donation.custom_note }}</span>
+                        {% else %}
+                            {{ donation.donation_type }}
+                        {% endif %}
+                    </td>
+                    <td data-label="Date">{{ donation.donated_at.strftime("%b %d, %Y") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Initialize Searchable Member Dropdown ---
+    new TomSelect('#member_id', {
+        create: false,
+        sortField: { field: "text", direction: "asc" }
+    });
+
+    // --- Auto-focus amount field when a member is selected ---
+    document.getElementById('member_id').addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById('amount').focus();
+        }
+    });
+
+    // --- Animate the "Other" note field based on selection ---
+    const donationTypeSelect = document.getElementById('donation_type');
+    const customNoteGroup = document.getElementById('custom_note_group');
+    const customNoteInput = document.getElementById('custom_note');
+
+    donationTypeSelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+            customNoteGroup.classList.add('is-visible');
+            customNoteInput.required = true;
+        } else {
+            customNoteGroup.classList.remove('is-visible');
+            customNoteInput.required = false;
+        }
+    });
+
+    // --- Security: Confirmation & Double-Submit Prevention ---
+    const donationForm = document.getElementById('donation-form');
+    const submitBtn = document.getElementById('submit-donation-btn');
+
+    donationForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const memberSelect = document.getElementById('member_id');
+        const selectedMemberText = memberSelect.options[memberSelect.selectedIndex].text;
+        const amount = parseFloat(document.getElementById('amount').value).toFixed(2);
+        const donationType = document.getElementById('donation_type').value;
+
+        const confirmMsg = `Please confirm the following donation:\n\n` +
+                         `👤 Member: ${selectedMemberText}\n` +
+                         `💰 Amount: BDT ${amount}\n` +
+                         `📁 Type: ${donationType}\n\n` +
+                         `Are you sure you want to proceed?`;
+
+        if (confirm(confirmMsg)) {
+            submitBtn.disabled = true;
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnSpinner = submitBtn.querySelector('.btn-spinner');
+            if (btnText) btnText.textContent = 'Submitting...';
+            if (btnSpinner) btnSpinner.style.display = 'inline-block';
+            e.target.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

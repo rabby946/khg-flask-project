@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Membership Application Received</title>
+    <style>
+        /* Basic styles for clients that support them */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc;">
+        <tr>
+            <td align="center">
+                <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; margin: 20px 0;">
+                    <tr>
+                        <td style="padding: 20px; background: linear-gradient(135deg, #0d6efd, #0dcaf0); text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">{{ sender_name }}</h1>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 30px 25px 40px 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 0 0 12px 12px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <h2 style="margin: 0 0 10px 0; font-size: 28px; font-weight: 600; color: #212529;">Application Received</h2>
+                                        <p style="margin: 0; font-size: 16px; color: #6c757d; line-height: 1.6;">Dear {{ application.name }},</p>
+                                        <p style="margin: 10px 0 20px 0; font-size: 16px; color: #6c757d; line-height: 1.6;">
+                                            Thank you for your interest in joining our community. We have successfully received your membership application.
+                                        </p>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="padding: 20px 0;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                            <tr>
+                                                <td>
+                                                    <h3 style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600; color: #333;">What Happens Next?</h3>
+                                                    <p style="margin: 0 0 10px 0; font-size: 15px; color: #555; line-height: 1.6;">
+                                                        <strong>1. Review:</strong> Our team will carefully review your submitted details.
+                                                    </p>
+                                                    <p style="margin: 0 0 10px 0; font-size: 15px; color: #555; line-height: 1.6;">
+                                                        <strong>2. Verification:</strong> We may contact you for further verification if needed.
+                                                    </p>
+                                                    <p style="margin: 0; font-size: 15px; color: #555; line-height: 1.6;">
+                                                        <strong>3. Decision:</strong> You will be notified of our decision via email soon.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="padding-top: 20px;">
+                                        <p style="font-size: 16px; color: #333; font-weight: 500; border-bottom: 1px solid #e9ecef; padding-bottom: 10px;">A summary of your submission:</p>
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6c757d; width: 40%;">Full Name:</td>
+                                                <td style="padding: 8px 0; color: #212529; font-weight: 500;">{{ application.name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6c757d; width: 40%;">Father Name:</td>
+                                                <td style="padding: 8px 0; color: #212529; font-weight: 500;">{{ application.father_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6c757d;">Email:</td>
+                                                <td style="padding: 8px 0; color: #212529;">{{ application.email }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6c757d;">Phone:</td>
+                                                <td style="padding: 8px 0; color: #212529;">{{ application.phone }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6c757d;">NID:</td>
+                                                <td style="padding: 8px 0; color: #212529;">{{ application.nid }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="padding: 25px; text-align: center; font-size: 12px; color: #999;">
+                            This is an automated email. Please do not reply directly.
+                            <br><br>
+                            &copy; 2025 Korje Hasanah Group. All rights reserved.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,263 @@
+{% extends "superadmin/base.html" %}
+
+{% block super_admin_content %}
+
+<style>
+    /* Use the same variables defined in base.html for consistency */
+    .page-header {
+        color: var(--text-light);
+    }
+    .page-header small {
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    /* Stat Cards (re-using the modern design) */
+    .stat-card {
+        background-color: var(--bg-dark-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card .card-body {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 1.5rem;
+    }
+    .stat-card .icon-circle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+    }
+    .stat-card .icon-circle.bg-primary-light { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .stat-card .icon-circle.bg-success-light { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
+    .stat-card .icon-circle.bg-warning-light { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .stat-card .icon-circle.bg-danger-light { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+    .stat-card .stat-title {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-light);
+        line-height: 1;
+    }
+    .stat-card .stat-value .currency {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-left: 0.25rem;
+    }
+
+    /* Quick Link Cards */
+    .quick-link-card {
+        background-color: var(--bg-dark-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        color: var(--text-muted);
+    }
+    .quick-link-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-accent);
+        background-color: #232837;
+        color: var(--text-light);
+    }
+    .quick-link-card .link-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-accent);
+        transition: transform 0.3s ease;
+    }
+    .quick-link-card:hover .link-icon {
+        transform: scale(1.1);
+    }
+    .quick-link-card h5 {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Recent Activity / Data Table Card */
+    .data-card {
+        background-color: var(--bg-dark-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+    }
+    .data-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-light);
+        font-weight: 600;
+    }
+    .table-dark-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: var(--text-muted);
+        --bs-table-border-color: var(--border-color);
+    }
+    .table-dark-custom th {
+        color: var(--text-light);
+        font-weight: 500;
+    }
+    .table-dark-custom td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <h2 class="page-header">Welcome back, {{ 'Super Admin' }}!</h2>
+        <small id="currentDate"></small>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="card-body">
+                    <div class="icon-circle bg-primary-light"><i class="fas fa-wallet"></i></div>
+                    <div>
+                        <h6 class="stat-title">Total Funds</h6>
+                        <p class="stat-value mb-0">{{ total_funds }}<span class="currency">BDT</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="card-body">
+                    <div class="icon-circle bg-success-light"><i class="fas fa-users"></i></div>
+                    <div>
+                        <h6 class="stat-title">Total Members</h6>
+                        <p class="stat-value mb-0">{{ total_members }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="card-body">
+                    <div class="icon-circle bg-warning-light"><i class="fas fa-user-clock"></i></div>
+                    <div>
+                        <h6 class="stat-title">Pending Applications</h6>
+                        <p class="stat-value mb-0">{{ pending_applications }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="card-body">
+                    <div class="icon-circle bg-danger-light"><i class="fas fa-user-shield"></i></div>
+                    <div>
+                        <h6 class="stat-title">Admins</h6>
+                        <p class="stat-value mb-0">{{ total_admins }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mb-3">Quick Actions</h4>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="{{ url_for('superadmin.manage_admins') }}" class="text-decoration-none">
+                <div class="quick-link-card h-100">
+                    <div class="link-icon"><i class="fas fa-users-cog"></i></div>
+                    <h5>Manage Admins</h5>
+                    <p>View, add, or remove site administrators.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('superadmin.view_audit_logs') }}" class="text-decoration-none">
+                <div class="quick-link-card h-100">
+                    <div class="link-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <h5>Audit Logs</h5>
+                    <p>Monitor all critical actions across the system.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('superadmin.super_admin_reports') }}" class="text-decoration-none">
+                <div class="quick-link-card h-100">
+                    <div class="link-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h5>Reports & Analytics</h5>
+                    <p>View system insights and data visualizations.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="data-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Recent Activity</span>
+                    <a href="{{ url_for('superadmin.view_audit_logs') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Performed By</th>
+                                    <th scope="col">Timestamp</th>
+                                    <th scope="col">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {# NOTE: You'll need to pass 'recent_logs' from your backend view #}
+                                {% if recent_logs %}
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>{{ log.action }}</td>
+                                        <td>{{ log.admin.full_name }}</td>
+                                        <td>{{ log.created_at.strftime("%d-%m-%Y %I:%M %p") }}</td>
+
+                                        <td>{{ log.target_table|truncate(50) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">No recent activity found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Simple script to display the current date
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateElement = document.getElementById('currentDate');
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = today.toLocaleDateString('en-US', options);
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHG Admin - {% block title %}Dashboard{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-primary: #0d6efd;
+            --bg-main: #f8fafc; /* slate-50 */
+            --bg-header: #ffffff;
+            --text-dark: #0f172a; /* slate-900 */
+            --text-muted: #64748b; /* slate-500 */
+            --border-color: #e2e8f0; /* slate-200 */
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 0.75rem;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+        }
+
+        /* --- Main Top Header / Command Bar --- */
+        .command-bar {
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .command-bar__logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .command-bar__logo-icon {
+            background-color: var(--text-dark);
+            color: var(--bg-header);
+            border-radius: 0.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .command-bar__logo-icon svg { width: 24px; height: 24px; }
+
+        /* --- Main Navigation Dropdown --- */
+        .nav-menu { position: relative; }
+        .nav-menu__toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50px;
+            transition: background-color 0.2s ease;
+        }
+        .nav-menu__toggle:hover {
+            background-color: var(--bg-main);
+        }
+        .nav-menu__avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        
+        .nav-menu__dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background-color: var(--bg-header);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 280px; /* Wider for all links */
+            padding: 0.75rem;
+            list-style: none;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        .nav-menu__dropdown.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+        
+        .nav-menu__dropdown .dropdown-header {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .nav-menu__dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .nav-menu__dropdown a:hover { background-color: var(--bg-main); }
+        .nav-menu__dropdown a.active {
+            background-color: var(--brand-primary);
+            color: white;
+            font-weight: 600;
+        }
+        .nav-menu__dropdown a .icon { width: 20px; text-align: center; color: var(--text-muted); }
+        .nav-menu__dropdown a.active .icon { color: white; }
+        .nav-menu__dropdown .dropdown-divider { margin: 0.75rem 0; }
+    </style>
+</head>
+<body>
+    <header class="command-bar">
+        <a href="{{ url_for('admin.dashboard') }}" class="command-bar__logo" aria-label="KHG Admin Home">
+            <span class="command-bar__logo-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" /></svg>
+            </span>
+            <span class="d-none d-sm-inline">KHG Admin</span>
+        </a>
+        <div class="nav-menu" id="nav-menu">
+            <button class="nav-menu__toggle" id="nav-menu-toggle">
+                <img src="https://ui-avatars.com/api/?name={{ session.get('admin_name', 'A')[0] | upper }}&background=111827&color=fff&rounded=true&size=40" class="nav-menu__avatar" alt="Admin Avatar">
+                <span class="d-none d-sm-inline fw-bold me-2">{{ session.get('admin_name', 'Admin') }}</span>
+                <i class="fas fa-chevron-down fa-xs text-muted"></i>
+            </button>
+            <ul class="nav-menu__dropdown" id="nav-menu-dropdown">
+                <li class="dropdown-header">Main</li>
+                <li><a class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}"><i class="icon fa-solid fa-gauge"></i> Dashboard</a></li>
+                <li><a class="{% if request.endpoint == 'admin.notifications' %}active{% endif %}" href="{{ url_for('admin.notifications') }}"><i class="icon fa-solid fa-bell"></i> Notifications</a></li>
+                <hr class="dropdown-divider">
+                <li class="dropdown-header">Management</li>
+                <li><a class="{% if 'memberships' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.memberships') }}"><i class="icon fa-solid fa-users"></i> Member Applications</a></li>
+                <li><a class="{% if 'manage_members' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.manage_members') }}"><i class="icon fa-solid fa-user-gear"></i> Manage Members</a></li>
+                <li><a class="{% if 'loans' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.loans') }}"><i class="icon fa-solid fa-file-invoice-dollar"></i> Loan Applications</a></li>
+                <li><a class="{% if 'loan_management' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.loan_management') }}"><i class="icon fa-solid fa-hand-holding-dollar"></i> Loan Management</a></li>
+                <li><a class="{% if 'fund_history' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.fund_history') }}"><i class="icon fa-solid fa-sack-dollar"></i> Fund History</a></li>
+                <li><a class="{% if 'add_donation' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.add_donation') }}"><i class="icon fa-solid fa-gift"></i> Add Donation</a></li>
+                <hr class="dropdown-divider">
+                <li class="dropdown-header">General</li>
+                <li><a href="{{ url_for('public.home') }}"><i class="icon fa-solid fa-home"></i> Public Home</a></li>
+                <li><a href="{{ url_for('admin.logout') }}" class="text-danger"><i class="icon fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </div>
+    </header>
+    <main class="container-fluid p-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navMenu = document.getElementById('nav-menu');
+        const navMenuToggle = document.getElementById('nav-menu-toggle');
+        const navMenuDropdown = document.getElementById('nav-menu-dropdown');
+
+        if (navMenuToggle && navMenuDropdown) {
+            navMenuToggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                navMenuDropdown.classList.toggle('is-visible');
+            });
+        }
+        window.addEventListener('click', function(e) {
+            if (navMenuDropdown && navMenuDropdown.classList.contains('is-visible')) {
+                if (!navMenu.contains(e.target)) {
+                    navMenuDropdown.classList.remove('is-visible');
+                }
+            }
+        });
+    });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

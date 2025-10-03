@@ -1,0 +1,211 @@
+{% extends "public/base.html" %}
+
+{% block title %}Contact Us | KHG{% endblock %}
+
+{% block head_extra %}
+{# This block allows us to add styles specifically for this page #}
+<style>
+    /* * This stylesheet uses the CSS variables defined in your public/base.html
+     * for seamless visual consistency (colors, fonts, shadows, etc.).
+    */
+
+    /* --- Page Header --- */
+    .page-header {
+        text-align: center;
+        max-width: 650px;
+        margin: 0 auto 2.5rem auto;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+    }
+    .page-header p {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+    }
+
+    /* --- Main Contact Card Layout --- */
+    .contact-card {
+        display: grid;
+        grid-template-columns: 1fr;
+        background-color: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        animation: fadeInUp 0.8s ease-out 0.2s;
+        animation-fill-mode: backwards; /* Ensures element is ready before animation starts */
+    }
+
+    @media (min-width: 860px) {
+        .contact-card {
+            grid-template-columns: 1fr 1.5fr; /* Two columns for desktop */
+        }
+    }
+
+    /* --- Left Column: Contact Info --- */
+    .contact-info {
+        background: linear-gradient(160deg, var(--brand), var(--brand-dark));
+        color: #fff;
+        padding: 2rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .contact-info h2 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    .contact-info p {
+        margin-bottom: 2rem;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    .contact-details {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .contact-details li {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .contact-details i {
+        font-size: 1.1rem;
+        width: 20px;
+        margin-top: 4px;
+        opacity: 0.8;
+    }
+
+    /* --- Right Column: Form --- */
+    .form-container {
+        padding: 2.5rem;
+    }
+    .contact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .contact-form label {
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        background-color: var(--bg);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+
+    /* --- Submit Button with Loading Effect --- */
+    .submit-btn {
+        background: var(--brand);
+        color: white;
+        padding: 0.85rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .submit-btn:hover {
+        background: var(--brand-dark);
+        transform: translateY(-2px);
+    }
+    .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+        transform: translateY(0);
+    }
+
+    /* --- Animation --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="contact-card">
+    <div class="contact-info">
+        <h2>Get in Touch</h2>
+        <p>You can also reach us directly through the contact details below.</p>
+        <ul class="contact-details">
+            <li><i class="fas fa-map-marker-alt"></i><span>Mohammadpur, Magura, Bangladesh</span></li>
+            <li><i class="fas fa-phone"></i><span>+8801957536572</span></li>
+            <li><i class="fas fa-envelope"></i><span>korjehasanahgroup@gmail.com</span></li>
+        </ul>
+    </div>
+
+    <div class="form-container">
+        <form id="contact-form" class="contact-form" method="POST" action="/contact">
+            <div>
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-input" required>
+            </div>
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-input" required>
+            </div>
+            <div>
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" class="form-input" required>
+            </div>
+            <div>
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="5" class="form-input" required></textarea>
+            </div>
+            <button type="submit" id="submit-btn" class="submit-btn">
+                <span class="btn-text">Send Message</span>
+                <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+{# This block is defined in your base.html for page-specific scripts #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contact-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnSpinner = submitBtn.querySelector('.btn-spinner');
+
+        contactForm.addEventListener('submit', function(e) {
+            if (contactForm.checkValidity()) {
+                e.preventDefault(); 
+                
+                submitBtn.disabled = true;
+                if (btnText) btnText.textContent = 'Sending...';
+                if (btnSpinner) btnSpinner.style.display = 'inline-block';
+
+                setTimeout(() => {
+                    contactForm.submit();
+                }, 500);
+            }
+        });
+    });
+</script>
+{% endblock %}

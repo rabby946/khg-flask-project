@@ -1,0 +1,180 @@
+{% extends "member/base.html" %}
+
+{% block title %}Voting Center{% endblock %}
+
+{% block member_content %}
+<style>
+    /* Final, robust styles for the Voting page */
+    :root {
+        --vote-font: 'Poppins', sans-serif;
+        --vote-card-bg: #ffffff;
+        --vote-border: #dee2e6;
+        --vote-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        --vote-text-dark: #212529;
+        --vote-text-light: #6c757d;
+        --vote-primary: #0d6efd;
+        --vote-danger: #dc3545;
+        /* Pride Palette */
+        --c1:#E40303; --c2:#FF8C00; --c3:#FFED00; --c4:#008026; --c5:#004DFF;
+        --c6:#750787; --c7:#000000; --c8:#784F17; --c9:#61A6F6; --c10:#F6AAB9;
+    }
+
+    .voting-container { font-family: var(--vote-font); max-width: 800px; margin: 1rem auto; }
+    .voting-header { text-align: center; margin-bottom: 3rem; }
+    .voting-title { font-size: 2.5rem; font-weight: 700; color: var(--vote-text-dark); margin-bottom: 0.5rem; }
+    .voting-subtitle { font-size: 1.1rem; color: var(--vote-text-light); max-width: 600px; margin: 0 auto; }
+
+    .poll-card {
+        background-color: var(--vote-card-bg);
+        border: 1px solid var(--vote-border);
+        border-radius: 1rem;
+        box-shadow: var(--vote-shadow);
+        margin-bottom: 2.5rem;
+    }
+    .poll-card-content { padding: 2.5rem; }
+    .poll-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .poll-description { font-size: 1rem; color: var(--vote-text-light); line-height: 1.7; margin-bottom: 2rem; }
+
+    .vote-form-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    .vote-form-control { flex-grow: 1; }
+    
+    .form-select {
+        font-size: 1rem; /* Made slightly smaller */
+        padding: 0.6rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--vote-border);
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .form-select.is-invalid {
+        border-color: var(--vote-danger);
+    }
+    .invalid-feedback {
+        display: none;
+        color: var(--vote-danger);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    .form-select.is-invalid + .invalid-feedback {
+        display: block;
+    }
+
+    .vote-submit-btn {
+        padding: 0.6rem 1.25rem; /* Made smaller */
+        font-size: 1rem; font-weight: 600;
+        border-radius: 0.5rem; border: none;
+        background-color: var(--vote-primary); color: #fff;
+        cursor: pointer;
+        white-space: nowrap; /* Prevent button text from wrapping */
+    }
+    
+    /* Results View Styling */
+    .results-wrapper { padding-top: 2rem; margin-top: 2rem; border-top: 1px solid var(--vote-border); }
+    .your-vote-display { background-color: #e9ecef; border: 1px solid var(--vote-border); color: var(--vote-text-dark); padding: 1rem; border-radius: 0.5rem; text-align: center; font-weight: 600; margin-bottom: 2rem; }
+    .results-list { list-style: none; padding: 0; margin: 0; }
+    .result-item { margin-bottom: 1.25rem; }
+    .result-item.voted-for { font-weight: 700; }
+    .result-label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .result-bar-container { height: 10px; background-color: #e9ecef; border-radius: 10px; overflow: hidden; }
+    .result-bar-fill { height: 100%; border-radius: 10px; }
+    .result-item:nth-child(10n+1) .result-bar-fill { background-color: var(--c1); }
+    .result-item:nth-child(10n+2) .result-bar-fill { background-color: var(--c2); }
+    .result-item:nth-child(10n+3) .result-bar-fill { background-color: var(--c3); }
+    .result-item:nth-child(10n+4) .result-bar-fill { background-color: var(--c4); }
+    .result-item:nth-child(10n+5) .result-bar-fill { background-color: var(--c5); }
+    .result-item:nth-child(10n+6) .result-bar-fill { background-color: var(--c6); }
+    .result-item:nth-child(10n+7) .result-bar-fill { background-color: var(--c7); }
+    .result-item:nth-child(10n+8) .result-bar-fill { background-color: var(--c8); }
+    .result-item:nth-child(10n+9) .result-bar-fill { background-color: var(--c9); }
+    .result-item:nth-child(10n+10) .result-bar-fill { background-color: var(--c10); }
+</style>
+
+<div class="voting-container">
+    <div class="voting-header">
+        <h2 class="voting-title">Member Polls</h2>
+        <p class="voting-subtitle">Your voice matters. Please review the items below and cast your vote.</p>
+    </div>
+
+    {% if vote_items %}
+        {% for item in vote_items %}
+        <div class="poll-card">
+            <div class="poll-card-content">
+                <h3 class="poll-title">{{ item.title }}</h3>
+                <p class="poll-description">{{ item.description }}</p>
+
+                {% set member_vote = member_votes.get(item.item_id) %}
+                
+                {% if member_vote is not none %}
+                    <div class="results-wrapper">
+                        <div class="your-vote-display">
+                            <i class="fas fa-check-circle me-2"></i>You voted for Option {{ member_vote }}
+                        </div>
+                        <ul class="results-list">
+                            {% set total_votes = item.votes|length %}
+                            {% for i in range(10) %}
+                                {% set option_votes = item.votes|selectattr("choice", "equalto", i)|list %}
+                                {% set count = option_votes|length %}
+                                {% set percent = (count / total_votes * 100) if total_votes > 0 else 0 %}
+                                <li class="result-item {% if i == member_vote %}voted-for{% endif %}">
+                                    <div class="result-label">
+                                        <span>Option {{ i }}</span>
+                                        <span>{{ count }} Vote(s)</span>
+                                    </div>
+                                    <div class="result-bar-container">
+                                        <div class="result-bar-fill" style="width: {{ percent }}%;"></div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% else %}
+                    <form method="POST" class="vote-form">
+                        <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                        <div class="vote-form-group">
+                            <div class="vote-form-control">
+                                <label for="choice-{{ item.item_id }}" class="form-label visually-hidden">Select your choice:</label>
+                                <select class="form-select" name="choice" id="choice-{{ item.item_id }}" required>
+                                    <option value="" disabled selected>Select a choice...</option>
+                                    {% for i in range(10) %}
+                                        <option value="{{ i }}">Option {{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">Please select an option before voting.</div>
+                            </div>
+                            <button type="submit" class="vote-submit-btn">Vote</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const voteForms = document.querySelectorAll('.vote-form');
+    voteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const select = form.querySelector('select[name="choice"]');
+            const feedback = form.querySelector('.invalid-feedback');
+            
+            // If no value is selected from the dropdown
+            if (select && !select.value) {
+                e.preventDefault(); // Stop the form from submitting
+                select.classList.add('is-invalid');
+                feedback.style.display = 'block';
+            } else if (select) {
+                select.classList.remove('is-invalid');
+                feedback.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

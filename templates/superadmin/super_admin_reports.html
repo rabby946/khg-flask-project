@@ -1,0 +1,309 @@
+{% extends "superadmin/base.html" %}
+
+{% block super_admin_content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<style>
+    :root {
+        --primary-accent: #00A9FF;
+        --success-accent: #32D583;
+        --warning-accent: #FFAB00;
+        --danger-accent: #F04438;
+        --bg-dark: #181A20;
+        --bg-card: #262A33;
+        --text-primary: #FFFFFF;
+        --text-secondary: #adb5bd;
+        --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Apply a consistent background and text color */
+    .super_admin_content_block, .container-fluid {
+        background-color: var(--bg-dark);
+        color: var(--text-primary);
+    }
+
+    /* Page Header */
+    .page-header {
+        color: var(--text-primary);
+        font-weight: 600;
+        border-left: 4px solid var(--primary-accent);
+        padding-left: 1rem;
+    }
+
+    /* Summary Stat Cards */
+    .stat-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-card .card-body {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+    }
+
+    .stat-card .icon-circle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+    }
+
+    .stat-card .icon-circle.bg-primary-light { background-color: rgba(0, 169, 255, 0.1); color: var(--primary-accent); }
+    .stat-card .icon-circle.bg-success-light { background-color: rgba(50, 213, 131, 0.1); color: var(--success-accent); }
+    .stat-card .icon-circle.bg-warning-light { background-color: rgba(255, 171, 0, 0.1); color: var(--warning-accent); }
+    .stat-card .icon-circle.bg-danger-light { background-color: rgba(240, 68, 56, 0.1); color: var(--danger-accent); }
+
+    .stat-card .stat-title {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .stat-card .stat-value .currency {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-left: 0.25rem;
+    }
+
+    /* Chart Cards */
+    .chart-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .chart-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+    }
+    
+    .chart-card .card-body {
+        padding: 1.5rem;
+        height: 400px; /* Give a fixed height to the chart container */
+    }
+
+</style>
+
+<div class="container-fluid py-4 super_admin_content_block">
+    <h2 class="mb-4 page-header">Reports & Analytics</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card h-100">
+                <div class="card-body">
+                    <div class="icon-circle bg-primary-light">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <h6 class="stat-title">Total Donations</h6>
+                        <p class="stat-value mb-0">{{ total_donations }}<span class="currency">BDT</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card h-100">
+                <div class="card-body">
+                    <div class="icon-circle bg-success-light">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <div>
+                        <h6 class="stat-title">Total Loans Given</h6>
+                        <p class="stat-value mb-0">{{ total_loans }}<span class="currency">BDT</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card h-100">
+                <div class="card-body">
+                    <div class="icon-circle bg-warning-light">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <h6 class="stat-title">Ongoing Loans</h6>
+                        <p class="stat-value mb-0">{{ pending_loans_count }}<span class="currency">BDT</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card h-100">
+                <div class="card-body">
+                    <div class="icon-circle bg-danger-light">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h6 class="stat-title">Total Members</h6>
+                        <p class="stat-value mb-0">{{ total_members }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="chart-card h-100">
+                <div class="card-header">Donations Over Time</div>
+                <div class="card-body">
+                    <canvas id="donationChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="chart-card h-100">
+                <div class="card-header">Loans Repayment Status</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="loanChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // Common Chart Styling Options
+    const chartTextColor = '#adb5bd';
+    const chartGridColor = 'rgba(255, 255, 255, 0.1)';
+    
+    Chart.defaults.font.family = "'Inter', 'sans-serif'"; // A clean, modern font
+    Chart.defaults.color = chartTextColor;
+
+    // --- 1. Donation Line Chart ---
+    const donationCtx = document.getElementById('donationChart').getContext('2d');
+    
+    // Create a gradient for the line chart fill
+    const gradient = donationCtx.createLinearGradient(0, 0, 0, donationCtx.canvas.clientHeight);
+    gradient.addColorStop(0, 'rgba(0, 169, 255, 0.4)');
+    gradient.addColorStop(1, 'rgba(0, 169, 255, 0)');
+
+    const donationChart = new Chart(donationCtx, {
+        type: 'line',
+        data: {
+            labels: {{ donation_labels|safe }},
+            datasets: [{
+                label: 'Donations (BDT)',
+                data: {{ donation_values|safe }},
+                borderColor: '#00A9FF',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4, // Makes the line smoother
+                pointBackgroundColor: '#00A9FF',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 7,
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#00A9FF'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // Hide legend as the title is clear enough
+                },
+                tooltip: {
+                    backgroundColor: '#181A20',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#adb5bd',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    grid: {
+                        color: chartGridColor
+                    },
+                    ticks: {
+                        color: chartTextColor
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: chartTextColor
+                    }
+                }
+            }
+        }
+    });
+
+    // --- 2. Loan Repayment Doughnut Chart ---
+    const loanCtx = document.getElementById('loanChart').getContext('2d');
+    const loanChart = new Chart(loanCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Repaid Loans', 'Pending Loans'],
+            datasets: [{
+                data: [{{ repaid_loans }}, {{ pending_loans_count }}],
+                backgroundColor: [
+                    '#32D583', // success-accent
+                    '#FFAB00'  // warning-accent
+                ],
+                borderColor: '#262A33', // Match card background for a "floating" effect
+                borderWidth: 4,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%', // Makes the doughnut thinner
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        boxWidth: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#181A20',
+                    titleColor: '#FFFFFF',
+                    bodyColor: '#adb5bd',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true // Show color box in tooltip
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

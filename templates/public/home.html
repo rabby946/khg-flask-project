@@ -1,0 +1,199 @@
+{% extends "public/base.html" %}
+
+{% block title %}Home | KHG{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for the new Home Page */
+    :root {
+        --khg-font: 'Inter', sans-serif;
+        --khg-primary: #0ea5e9; /* sky-500 */
+        --khg-primary-dark: #0284c7; /* sky-600 */
+        --khg-bg-light: #f8fafc; /* slate-50 */
+        --khg-bg-cta: #f0f9ff; /* sky-50 */
+        --khg-border: #e2e8f0; /* slate-200 */
+        --khg-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --khg-text-dark: #0f172a; /* slate-900 */
+        --khg-text-light: #475569; /* slate-600 */
+    }
+
+    /* General Section Styling */
+    .page-section {
+        padding: 0rem 1.5rem;
+        font-family: var(--khg-font);
+    }
+    .container {
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        background-color: var(--khg-bg-light);
+        text-align: center;
+    }
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--khg-text-dark);
+        margin-bottom: 1rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @media (min-width: 768px) { .hero-title { font-size: 3.5rem; } }
+    
+    .hero-subtitle {
+        max-width: 720px;
+        margin: 0 auto;
+        font-size: 1.125rem;
+        color: var(--khg-text-light);
+        line-height: 1.7;
+        animation: fadeInUp 0.6s ease-out 0.2s;
+        animation-fill-mode: both; /* Keeps styles before animation starts */
+    }
+    
+    .hero-actions {
+        margin-top: 2.5rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.6s ease-out 0.4s;
+        animation-fill-mode: both;
+    }
+    .btn {
+        text-decoration: none;
+        padding: 0.8rem 1.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    .btn-primary { background-color: var(--khg-primary); color: #fff; }
+    .btn-primary:hover { background-color: var(--khg-primary-dark); transform: translateY(-2px); }
+    .btn-secondary { background-color: #fff; color: var(--khg-text-dark); border: 1px solid var(--khg-border); }
+    .btn-secondary:hover { background-color: #f1f5f9; transform: translateY(-2px); }
+
+    /* Features Section */
+    .features-section .container { text-align: center; }
+    .section-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 3rem;
+        color: var(--khg-text-dark);
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        text-align: left;
+    }
+    .feature-card {
+        border: 1px solid var(--khg-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    .feature-card:hover { transform: translateY(-5px); box-shadow: var(--khg-shadow); }
+    .feature-card h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--khg-text-dark); }
+    .feature-card p { color: var(--khg-text-light); line-height: 1.6; }
+
+    /* CTA Section */
+    .cta-section {
+        background-color: var(--khg-bg-cta);
+        text-align: center;
+    }
+
+    /* Animation Styles */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-on-scroll {
+        opacity: 0;
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        transform: translateY(20px);
+    }
+    .animate-on-scroll.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+
+<section class="hero-section page-section">
+    <div class="container">
+        <h1 class="hero-title">
+            Welcome to Korje Hasanah Group (KHG)
+        </h1>
+        <p class="hero-subtitle">
+            An ethical community-driven microfinance platform where members support one another with
+            interest-free microloans. Together, we build trust, share resources, and grow stronger.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('public.apply_membership') }}" class="btn btn-primary">
+                Apply for Membership
+            </a>
+            <a href="{{ url_for('public.about') }}" class="btn btn-secondary">
+                Learn More
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="features-section page-section">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Why Join KHG?</h2>
+        <div class="features-grid">
+            <div class="feature-card animate-on-scroll" style="transition-delay: 100ms;">
+                <h3>Interest-Free Microloans</h3>
+                <p>Members can borrow from the community fund without paying interest, ensuring fairness and equity.</p>
+            </div>
+            <div class="feature-card animate-on-scroll" style="transition-delay: 200ms;">
+                <h3>Community Voting</h3>
+                <p>Loan approvals are done by admins descision — members can vote on applications for full transparency if admins get confused and want to.</p>
+            </div>
+            <div class="feature-card animate-on-scroll" style="transition-delay: 300ms;">
+                <h3>Transparency & Trust</h3>
+                <p>All fund histories and loan activities are visible to members, ensuring honesty and accountability.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section page-section">
+    <div class="container animate-on-scroll">
+        <h2 class="section-title">Be Part of the Change</h2>
+        <p class="hero-subtitle">
+            Join a growing community dedicated to ethical finance. Whether you’re here to support or to seek help,
+            KHG welcomes you.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('public.apply_membership') }}" class="btn btn-primary">
+                Become a Member Today
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+// JavaScript for scroll-triggered animations
+document.addEventListener('DOMContentLoaded', () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1 // Trigger when 10% of the element is visible
+    });
+
+    // Observe all elements with the 'animate-on-scroll' class
+    document.querySelectorAll('.animate-on-scroll').forEach(element => {
+        observer.observe(element);
+    });
+});
+</script>
+{% endblock %}

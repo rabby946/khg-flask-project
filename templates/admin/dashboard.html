@@ -1,0 +1,285 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles for the new Admin Dashboard */
+    :root {
+        --dash-font: 'Poppins', sans-serif;
+        --dash-bg: #f8f9fa;
+        --dash-card-bg: #ffffff;
+        --dash-border: #e9ecef;
+        --dash-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --dash-text-dark: #212529;
+        --dash-text-light: #6c757d;
+        /* Color Palette */
+        --c-green: #198754; --c-blue: #0d6efd; --c-yellow: #ffc107;
+        --c-red: #dc3545; --c-cyan: #0dcaf0;
+    }
+
+    .dashboard-container {
+        font-family: var(--dash-font);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .dashboard-header { margin-bottom: 2rem; }
+    .dashboard-title { font-size: 2rem; font-weight: 600; color: var(--dash-text-dark); }
+
+    /* 5-Column Stat Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    @media (min-width: 1200px) {
+        .stats-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+
+    .stat-card {
+        background-color: var(--dash-card-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        opacity: 0;
+        animation: fadeInSlideUp 0.5s ease-out forwards;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: var(--dash-shadow); }
+    @keyframes fadeInSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .stat-card__icon {
+        font-size: 1.75rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .stat-card__info h5 { font-size: 1rem; color: var(--dash-text-light); margin-bottom: 0.25rem; }
+    .stat-card__info h4 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+
+    /* Assigning Colors */
+    .stat-card--green .stat-card__icon { background-color: #e8f5e9; color: var(--c-green); }
+    .stat-card--green h4 { color: var(--c-green); }
+    .stat-card--blue .stat-card__icon { background-color: #e7f1ff; color: var(--c-blue); }
+    .stat-card--blue h4 { color: var(--c-blue); }
+    .stat-card--yellow .stat-card__icon { background-color: #fff8e1; color: var(--c-yellow); }
+    .stat-card--yellow h4 { color: var(--c-yellow); }
+    .stat-card--red .stat-card__icon { background-color: #fdeaea; color: var(--c-red); }
+    .stat-card--red h4 { color: var(--c-red); }
+    .stat-card--cyan .stat-card__icon { background-color: #e1f8fa; color: var(--c-cyan); }
+    .stat-card--cyan h4 { color: var(--c-cyan); }
+
+    /* Activity Section */
+    .activity-section { margin-top: 3rem; }
+    .activity-card {
+        background-color: var(--dash-card-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        opacity: 0;
+        animation: fadeInSlideUp 0.5s ease-out forwards;
+    }
+    .activity-card__header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--dash-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .activity-card__title { font-size: 1.25rem; font-weight: 600; margin: 0; }
+    .activity-card__filter { max-width: 250px; }
+    .activity-card__body { padding: 0.5rem; }
+    
+    /* Table Styling */
+    .table { margin-bottom: 0; }
+    .table th {
+        font-weight: 600; color: var(--dash-text-light);
+        border: none; white-space: nowrap;
+    }
+    .table td { color: var(--dash-text-dark); vertical-align: middle; }
+    .table th.sortable { cursor: pointer; user-select: none; }
+    .table th.sortable .sort-icon {
+        display: inline-block;
+        width: 1em;
+        margin-left: 0.5em;
+        color: #ced4da;
+    }
+    .table th.sortable:hover .sort-icon { color: var(--dash-text-dark); }
+    .table .no-results-row { display: none; }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        
+        <h1 class="dashboard-title">Welcome, {{ admin.full_name }} ! </h1>
+        <h4 class="dashboard-container"> You are {{admin.role|capitalize}} of Korje Hasanah Group</h4>
+    </div>
+
+    <div class="stats-grid">
+        <a href="{{ url_for('admin.fund_history') }}" class="stat-card stat-card--green" style="animation-delay: 0.1s;">
+            <div class="stat-card__icon"><i class="fa-solid fa-sack-dollar"></i></div>
+            <div class="stat-card__info"><h5>Available Funds</h5><h4>{{ total_funds or 0 }} ৳</h4></div>
+        </a>
+        <a href="{{ url_for('admin.memberships') }}" class="stat-card stat-card--blue" style="animation-delay: 0.2s;">
+            <div class="stat-card__icon"><i class="fa-solid fa-user-plus"></i></div>
+            <div class="stat-card__info"><h5>Pending Memberships</h5><h4>{{ pending_memberships or 0 }}</h4></div>
+        </a>
+        <a href="{{ url_for('admin.loans') }}" class="stat-card stat-card--yellow" style="animation-delay: 0.3s;">
+            <div class="stat-card__icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div class="stat-card__info"><h5>Pending Loans</h5><h4>{{ pending_loans or 0 }}</h4></div>
+        </a>
+        <a href="{{ url_for('admin.fund_history') }}" class="stat-card stat-card--red" style="animation-delay: 0.4s;">
+            <div class="stat-card__icon"><i class="fa-solid fa-gift"></i></div>
+            <div class="stat-card__info"><h5>Total Donations</h5><h4>{{ total_donations or 0 }} ৳</h4></div>
+        </a>
+        <div class="stat-card stat-card--cyan" style="animation-delay: 0.5s;">
+            <div class="stat-card__icon"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="stat-card__info"><h5>Donations (last 30 Days)</h5><h4>{{ monthly_donations_last_30_days or 0 }} ৳</h4></div>
+        </div>
+    </div>
+
+    <div class="row gx-4 gy-4 activity-section">
+        <div class="col-lg-6">
+            <div class="activity-card" style="animation-delay: 0.6s;">
+                <div class="activity-card__header">
+                    <h3 class="activity-card__title">Recent Memberships</h3>
+                    <div class="activity-card__filter">
+                        <input type="text" class="form-control form-control-sm table-filter" data-table-id="memberships-table" placeholder="Search...">
+                    </div>
+                </div>
+                <div class="activity-card__body table-responsive">
+                    <table class="table table-hover" id="memberships-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort-by="name">Name <i class="sort-icon fas fa-sort"></i></th>
+                                <th class="sortable" data-sort-by="email">Email <i class="sort-icon fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in recent_memberships %}
+                            <tr>
+                                <td>{{ app.name }}</td>
+                                <td>{{ app.email }}</td>
+                            </tr>
+                            {% else %}
+                                <tr><td colspan="2" class="text-center text-muted p-4">No recent applications.</td></tr>
+                            {% endfor %}
+                             <tr class="no-results-row"><td colspan="2" class="text-center p-4 text-muted">No results found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="activity-card" style="animation-delay: 0.7s;">
+                <div class="activity-card__header">
+                    <h3 class="activity-card__title">Recent Loan Applications</h3>
+                    <div class="activity-card__filter">
+                        <input type="text" class="form-control form-control-sm table-filter" data-table-id="loans-table" placeholder="Search...">
+                    </div>
+                </div>
+                <div class="activity-card__body table-responsive">
+                    <table class="table table-hover" id="loans-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort-by="name">Member Name <i class="sort-icon fas fa-sort"></i></th>
+                                <th class="sortable" data-sort-by="amount">Amount <i class="sort-icon fas fa-sort"></i></th>
+                                <th class="sortable" data-sort-by="date">Date <i class="sort-icon fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>{{ loan.member.name }}</td>
+                                <td data-sort-value="{{ loan.amount_requested }}">{{ loan.amount_requested }} ৳</td>
+                                <td data-sort-value="{{ loan.submitted_at.timestamp() }}">{{ loan.submitted_at.strftime("%d %b %Y") }}</td>
+                            </tr>
+                            {% else %}
+                                <tr><td colspan="3" class="text-center text-muted p-4">No recent loan requests.</td></tr>
+                            {% endfor %}
+                             <tr class="no-results-row"><td colspan="3" class="text-center p-4 text-muted">No results found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Live Table Filtering ---
+    document.querySelectorAll('.table-filter').forEach(input => {
+        const table = document.getElementById(input.dataset.tableId);
+        if (!table) return;
+
+        input.addEventListener('keyup', () => {
+            const searchTerm = input.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr:not(.no-results-row)');
+            const noResultsRow = table.querySelector('.no-results-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                if (rowText.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            if (noResultsRow) noResultsRow.style.display = (visibleCount === 0) ? '' : 'none';
+        });
+    });
+
+    // --- Clickable Table Sorting ---
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const table = header.closest('table');
+            const tbody = table.querySelector('tbody');
+            const colIndex = Array.from(header.parentNode.children).indexOf(header);
+            const rows = Array.from(tbody.querySelectorAll('tr:not(.no-results-row)'));
+            const currentSort = header.dataset.sortDir || 'desc';
+            const newSort = (currentSort === 'asc') ? 'desc' : 'asc';
+            
+            // Reset icons on other headers
+            table.querySelectorAll('.sortable').forEach(h => {
+                h.dataset.sortDir = '';
+                h.querySelector('.sort-icon').className = 'sort-icon fas fa-sort';
+            });
+            
+            header.dataset.sortDir = newSort;
+            header.querySelector('.sort-icon').className = `sort-icon fas fa-sort-${newSort === 'asc' ? 'up' : 'down'}`;
+
+            rows.sort((a, b) => {
+                const aCell = a.children[colIndex];
+                const bCell = b.children[colIndex];
+                // Use data-sort-value for numeric/date sorting if available
+                const aVal = aCell.dataset.sortValue || aCell.textContent.trim().toLowerCase();
+                const bVal = bCell.dataset.sortValue || bCell.textContent.trim().toLowerCase();
+                
+                if (!isNaN(aVal) && !isNaN(bVal)) { // Numeric sort
+                    return (newSort === 'asc') ? aVal - bVal : bVal - aVal;
+                } else { // String sort
+                    return (newSort === 'asc') ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    });
+});
+</script>
+{% endblock %}

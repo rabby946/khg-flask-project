@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Super Admin Panel</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark-deep: #131720;
+            --bg-dark-light: #1c212e;
+            --primary-accent: #0d6efd;
+            --text-light: #f8f9fa;
+            --text-muted: #8c98a9;
+            --border-color: #343a46;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark-deep);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-dark-light);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header .logo {
+            color: var(--text-light);
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .sidebar-header .logo i {
+            margin-right: 0.5rem;
+            color: var(--primary-accent);
+        }
+        .sidebar-header .logo span {
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.25rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 1rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            color: var(--text-light);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .nav-link.active {
+            color: var(--text-light);
+            background-color: var(--primary-accent);
+        }
+        .sidebar .nav-link.active i {
+            color: var(--text-light);
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .sidebar-footer .nav-link.logout {
+            background-color: rgba(240, 68, 56, 0.1);
+            color: #F04438;
+            border-radius: 8px;
+        }
+         .sidebar-footer .nav-link.logout:hover {
+            background-color: rgba(240, 68, 56, 0.2);
+            color: #F04438;
+        }
+
+
+        /* --- Content Area --- */
+        .content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* --- Topbar Styles --- */
+        .topbar {
+            background-color: var(--bg-dark-light);
+            padding: 0 1.5rem;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        #sidebarToggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+        #sidebarToggle:hover {
+            color: var(--text-light);
+        }
+
+        .topbar .navbar-nav .nav-link {
+            color: var(--text-muted);
+        }
+        .topbar .navbar-nav .nav-link:hover {
+            color: var(--text-light);
+        }
+        .dropdown-menu {
+            background-color: var(--bg-dark-light);
+            border: 1px solid var(--border-color);
+        }
+        .dropdown-item {
+            color: var(--text-muted);
+        }
+        .dropdown-item:hover {
+            background-color: var(--primary-accent);
+            color: var(--text-light);
+        }
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 0.5rem;
+        }
+
+
+        /* --- Main Content Block --- */
+        main {
+            padding: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        /* --- Collapsed Sidebar State --- */
+        .page-wrapper.collapsed .sidebar {
+            width: 80px;
+        }
+        .page-wrapper.collapsed .sidebar-header .logo span {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .page-wrapper.collapsed .sidebar .nav-link span {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('superadmin.dashboard') }}" class="logo">
+                    <i class="fas fa-cogs"></i> <span>SuperAdmin</span>
+                </a>
+            </div>
+
+            <ul class="nav flex-column sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{{ url_for('superadmin.dashboard') }}">
+                        <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'manage_admins' in request.path %}active{% endif %}" href="{{ url_for('superadmin.manage_admins') }}">
+                        <i class="fas fa-user-shield"></i> <span>Manage Admins</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'audit_logs' in request.path %}active{% endif %}" href="{{ url_for('superadmin.view_audit_logs') }}">
+                        <i class="fas fa-file-alt"></i> <span>Audit Logs</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'reports' in request.path %}active{% endif %}" href="{{ url_for('superadmin.super_admin_reports') }}">
+                        <i class="fas fa-chart-line"></i> <span>Reports</span>
+                    </a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('public.home') }}" target="_blank">
+                        <i class="fas fa-home"></i> <span>Public Site</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                 <a class="nav-link logout" href="{{ url_for('superadmin.logout') }}">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="content-wrapper">
+            <header class="topbar">
+                <button class="btn" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+                <ul class="navbar-nav flex-row ms-auto align-items-center">
+                     <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                           <i class="fas fa-user-circle me-2"></i> {{  'Super Admin' }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider" style="border-top-color: var(--border-color);"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('superadmin.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </header>
+
+            <main>
+                {% block super_admin_content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.querySelector('.page-wrapper').classList.toggle('collapsed');
+        });
+    </script>
+</body>
+</html>
