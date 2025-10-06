@@ -1,17 +1,18 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Manage Members{% endblock %}
-
 {% block page_title %}Manage Members{% endblock %}
 
 {% block content %}
 {% block head_extra %}
+<!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+
 <style>
-    /* Custom styles for a more polished look */
+    /* --- Member Table Styles --- */
     #membersTable_wrapper .row:first-child {
-        padding-bottom: 1rem;
+        margin-bottom: 1rem;
     }
     .member-avatar {
         width: 45px;
@@ -26,23 +27,67 @@
     .table td {
         vertical-align: middle;
     }
+
+    /* --- Action Dropdown --- */
     .actions-dropdown .dropdown-toggle::after {
-        display: none; /* Hide default caret */
+        display: none;
     }
+
     .swal2-popup {
         font-family: 'Inter', sans-serif;
+    }
+
+    .card h3 {
+        padding: 1rem 1.25rem 0;
+        font-weight: 600;
+        border-bottom: 1px solid #eee;
+    }
+
+    .card .card-body {
+        padding-top: 1rem;
+    }
+
+    /* Dropdown icon button */
+    .dropdown-toggle {
+        background: transparent;
+        border: none;
+        color: #6c757d;
+    }
+    .dropdown-menu a {
+        font-size: 0.9rem;
+    }
+
+    /* Link button for new applications */
+    .nav-link-btn {
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: #0d6efd;
+        font-weight: 500;
+    }
+
+    .nav-link-btn i {
+        margin-right: 0.5rem;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
     }
 </style>
 {% endblock %}
 
+<!-- Link to new applications -->
+<a href="{{ url_for('membermanagement.memberships') }}" class="nav-link-btn">
+    <i class="fas fa-users"></i> New Membership Applications
+</a>
 
-
+<!-- Members Table -->
 <div class="card shadow-sm border-0">
+    <h3>Current Members</h3>
     <div class="card-body">
         {% if members %}
             <div class="table-responsive">
-                <table id="membersTable" class="table table-hover" style="width:100%">
-                    <thead>
+                <table id="membersTable" class="table table-hover align-middle" style="width:100%">
+                    <thead class="table-light">
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
@@ -55,35 +100,34 @@
                     </thead>
                     <tbody>
                         {% for m in members %}
-                        
                         <tr>
-                              
-                                <td> <a href="{{url_for('admin.view_member', member_id=m.member_id)}}"> {{ m.member_id }} </a></td> 
+                            <td>{{ m.member_id }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <img src="{{ m.photo_url or 'https://via.placeholder.com/150/ced4da/6c757d?text=' + m.name[0] }}" 
                                          alt="{{ m.name }}'s photo" class="member-avatar me-3">
-                                    <span class="fw-bold">{{ m.name }}</span>
+                                    <a href="{{ url_for('admin.view_member', member_id=m.member_id) }}" class="fw-bold text-decoration-none text-dark">
+                                        {{ m.name }}
+                                    </a>
                                 </div>
                             </td>
                             <td>{{ m.email }}</td>
                             <td>{{ m.phone }}</td>
                             <td>{{ m.nid }}</td>
                             <td>{{ m.join_date.strftime("%d %b, %Y") }}</td>
-                            
                             <td class="text-end">
                                 <div class="dropdown actions-dropdown">
-                                    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                         <li>
-                                            <a class="dropdown-item" href="{{ url_for('admin.edit_member', member_id=m.member_id) }}">
-                                                <i class="fas fa-edit me-2"></i>Edit
+                                            <a class="dropdown-item" href="{{ url_for('membermanagement.edit_member', member_id=m.member_id) }}">
+                                                <i class="fas fa-edit me-2 text-primary"></i>Edit
                                             </a>
                                         </li>
                                         <li>
-                                            <form action="{{ url_for('admin.delete_member', member_id=m.member_id) }}" 
+                                            <form action="{{ url_for('membermanagement.delete_member', member_id=m.member_id) }}"
                                                   method="POST" class="delete-form d-inline">
                                                 <button type="submit" class="dropdown-item text-danger">
                                                     <i class="fas fa-trash-alt me-2"></i>Delete
@@ -94,7 +138,6 @@
                                 </div>
                             </td>
                         </tr>
-                        </a>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -103,13 +146,14 @@
             <div class="text-center p-5">
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No Members Found</h4>
-                <p>Start by adding a new member to the system.</p>
+                <p class="text-muted">Start by adding a new member to the system.</p>
             </div>
         {% endif %}
     </div>
 </div>
 
 {% block scripts_extra %}
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
@@ -119,43 +163,39 @@
 
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
     $('#membersTable').DataTable({
-        "responsive": true,
-        "autoWidth": false,
-        "columnDefs": [
-            { "orderable": false, "targets": 'no-sort' } // Disable sorting on 'Actions' column
+        responsive: true,
+        autoWidth: false,
+        columnDefs: [
+            { orderable: false, targets: 'no-sort' }
         ],
-        "language": {
-            "search": "_INPUT_",
-            "searchPlaceholder": "Search members..."
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search members..."
         }
     });
 
-    // Handle Delete Confirmation with SweetAlert2
     $('.delete-form').on('submit', function(e) {
-        e.preventDefault(); // Stop the form from submitting immediately
-        var form = this;
-
+        e.preventDefault();
+        const form = this;
         Swal.fire({
             title: 'Are you sure?',
-            text: "You won't be able to revert this!",
+            text: "This action cannot be undone.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it',
             customClass: {
-                popup: 'swal2-popup' // for custom font
+                popup: 'swal2-popup'
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                form.submit(); // If confirmed, submit the form
+                form.submit();
             }
         });
     });
 });
 </script>
 {% endblock %}
-
 {% endblock %}

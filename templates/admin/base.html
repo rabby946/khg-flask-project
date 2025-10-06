@@ -13,7 +13,7 @@
 
     <style>
         :root {
-            --brand-primary: #0d6efd;
+            --brand-primary: #0ea5e9;
             --bg-main: #f8fafc; /* slate-50 */
             --bg-header: #ffffff;
             --text-dark: #0f172a; /* slate-900 */
@@ -54,7 +54,7 @@
             font-weight: 700;
         }
         .command-bar__logo-icon {
-            background-color: var(--text-dark);
+            background-color: var(--brand-primary);
             color: var(--bg-header);
             border-radius: 0.5rem;
             width: 40px;
@@ -133,11 +133,11 @@
 </head>
 <body>
     <header class="command-bar">
-        <a href="{{ url_for('admin.dashboard') }}" class="command-bar__logo" aria-label="KHG Admin Home">
+        <a href="{{ url_for('public.home') }}" class="command-bar__logo" aria-label="KHG Admin Home">
             <span class="command-bar__logo-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" /></svg>
             </span>
-            <span class="d-none d-sm-inline">KHG Admin</span>
+            <span class="d-none d-sm-inline">KHG </span>
         </a>
         <div class="nav-menu" id="nav-menu">
             <button class="nav-menu__toggle" id="nav-menu-toggle">
@@ -146,20 +146,33 @@
                 <i class="fas fa-chevron-down fa-xs text-muted"></i>
             </button>
             <ul class="nav-menu__dropdown" id="nav-menu-dropdown">
-                <li class="dropdown-header">Main</li>
-                <li><a class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}"><i class="icon fa-solid fa-gauge"></i> Dashboard</a></li>
-                <li><a class="{% if request.endpoint == 'admin.notifications' %}active{% endif %}" href="{{ url_for('admin.notifications') }}"><i class="icon fa-solid fa-bell"></i> Notifications</a></li>
+                <li class="dropdown-header">Static</li>
+                <li>
+                    <a class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                        <i class="icon fa-solid fa-chart-line"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a class="{% if 'fund_history' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.fund_history') }}">
+                        <i class="icon fa-solid fa-money-check-dollar"></i> Transaction History
+                    </a>
+                </li>
+                <li>
+                    <a class="{% if 'donation_history' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.donation_history') }}">
+                        <i class="icon fa-solid fa-hand-holding-heart"></i> Donation History
+                    </a>
+                </li>
+
                 <hr class="dropdown-divider">
                 <li class="dropdown-header">Management</li>
-                <li><a class="{% if 'memberships' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.memberships') }}"><i class="icon fa-solid fa-users"></i> Member Applications</a></li>
-                <li><a class="{% if 'manage_members' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.manage_members') }}"><i class="icon fa-solid fa-user-gear"></i> Manage Members</a></li>
-                <li><a class="{% if 'loans' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.loans') }}"><i class="icon fa-solid fa-file-invoice-dollar"></i> Loan Applications</a></li>
-                <li><a class="{% if 'loan_management' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.loan_management') }}"><i class="icon fa-solid fa-hand-holding-dollar"></i> Loan Management</a></li>
-                <li><a class="{% if 'fund_history' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.fund_history') }}"><i class="icon fa-solid fa-sack-dollar"></i> Fund History</a></li>
-                <li><a class="{% if 'add_donation' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.add_donation') }}"><i class="icon fa-solid fa-gift"></i> Add Donation</a></li>
+                
+                <li><a class="{% if request.endpoint == 'admin.notifications' %}active{% endif %}" href="{{ url_for('admin.notifications') }}"><i class="icon fa-solid fa-bell"></i>NotificationsManagement</a></li>
+                <li><a class="{% if 'membermanagement' in request.endpoint %}active{% endif %}" href="{{ url_for('membermanagement.manage_members') }}"><i class="icon fa-solid fa-user-gear"></i> Members Management</a></li>
+                
+                <li><a class="{% if 'loanmanagement' in request.endpoint %}active{% endif %}" href="{{ url_for('loanmanagement.loan_management') }}"><i class="icon fa-solid fa-hand-holding-dollar"></i> Loan Management</a></li>
+                <li><a class="{% if 'donationmanagement' in request.endpoint %}active{% endif %}" href="{{ url_for('donationmanagement.add_donation') }}"><i class="icon fa-solid fa-gift"></i> Donation Management</a></li>
                 <hr class="dropdown-divider">
                 <li class="dropdown-header">General</li>
-                <li><a href="{{ url_for('public.home') }}"><i class="icon fa-solid fa-home"></i> Public Home</a></li>
                 <li><a href="{{ url_for('admin.logout') }}" class="text-danger"><i class="icon fa-solid fa-right-from-bracket"></i> Logout</a></li>
             </ul>
         </div>

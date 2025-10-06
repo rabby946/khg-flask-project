@@ -191,7 +191,7 @@
                         <div class="form-check" data-name="{{ member.name|lower }}" data-contact="{{ (member.email or member.phone)|lower }}">
                             <input class="form-check-input member-checkbox" type="checkbox" name="member_ids" value="{{ member.member_id }}" id="member{{ member.member_id }}">
                             <label class="form-check-label" for="member{{ member.member_id }}">
-                                {{ member.name }} <small class="text-muted">({{ member.email or member.phone }})</small>
+                              <a href="{{url_for('admin.view_member', member_id=member.member_id)}}">  {{ member.name }} </a> <small class="text-muted">({{ member.email or member.phone }})</small>
                             </label>
                         </div>
                         {% endfor %}
@@ -226,8 +226,8 @@
                     <tr>
                         <td data-label="Member">
                             <div class="member-info">
-                                <img src="https://ui-avatars.com/api/?name={{ notif.member.name.replace(' ', '+') }}&background=random&color=fff&size=35&rounded=true" alt="{{ notif.member.name }}" class="avatar">
-                                <span>{{ notif.member.name }}</span>
+                                <img src="{{notif.member.photo_url}}" alt="{{ notif.member.name }}" class="avatar">
+                                <span> <a href="{{ url_for('admin.view_member', member_id=notif.member.member_id) }}"> {{ notif.member.name }} </a></span>
                             </div>
                         </td>
                         <td data-label="Message" style="white-space: normal; word-wrap: break-word;">{{ notif.message }}</td>

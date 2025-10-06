@@ -67,7 +67,7 @@
 <div class="details-container">
     <div class="page-header">
         <h1 class="page-title">Loan Application #{{ application.application_id }}</h1>
-        <a href="{{ url_for('admin.loans') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back to List</a>
+        <a href="{{ url_for('loanapplication.loans') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Back to List</a>
     </div>
 
     <div class="details-grid">
@@ -88,17 +88,17 @@
                     <h3 class="h6 fw-bold mb-3">Admin Actions</h3>
 
                     {% if application.status in ['pending', 'voting'] %}
-                    <form action="{{ url_for('admin.accept_loan', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to APPROVE this loan application?');">
+                    <form action="{{ url_for('loanapplication.accept_loan', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to APPROVE this loan application?');">
                         <button type="submit" class="btn btn-success"><i class="fas fa-check me-2"></i>Approve</button>
                     </form>
                     
-                    <form action="{{ url_for('admin.delete_loan_application', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to REJECT this loan application?');">
+                    <form action="{{ url_for('loanapplication.delete_loan_application', application_id=application.application_id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to REJECT this loan application?');">
                         <button type="submit" class="btn btn-danger"><i class="fas fa-times me-2"></i>Delete</button>
                     </form>
                     {% endif %}
 
                     {% if application.status == 'pending' %}
-                    <a href="{{ url_for('admin.set_for_voting', application_id=application.application_id) }}" class="btn btn-primary">
+                    <a href="{{ url_for('loanapplication.set_for_voting', application_id=application.application_id) }}" class="btn btn-primary">
                         <i class="fas fa-check-to-slot me-2"></i>Set for Voting
                     </a>
                     {% endif %}
@@ -134,8 +134,9 @@
                         </thead>
                         <tbody>
                             {% for vote in votes %}
+                            
                             <tr>
-                                <td>{{ vote.member.name }}</td>
+                                <td> <a href="{{ url_for('admin.view_member', member_id=vote.member.member_id) }}"> {{ vote.member.name }} </a></td>
                                 <td class="fw-bold">{{ vote.choice }}</td>
                                 <td>{{ vote.voted_at.strftime('%d %b, %H:%M') }}</td>
                             </tr>

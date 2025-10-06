@@ -184,3 +184,40 @@ class PasswordResetToken(db.Model):
     token = db.Column(db.String(100), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=1))
+
+class DonationRequest(db.Model):
+    __tablename__ = "donation_requests"
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    donation_type = db.Column(db.String(50), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    transaction_id = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, default="N/A")
+    status = db.Column(db.String(20), default="Pending")  
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.String(100))  
+    admin_note = db.Column(db.Text, default="N/A")
+
+    member = db.relationship("Member", backref=db.backref("donation_requests", lazy=True))
+
+class LoanRepaymentRequest(db.Model):
+    __tablename__ = "loan_repayment_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey("members.member_id"), nullable=False)
+    loan_id = db.Column(db.Integer, db.ForeignKey("loans.loan_id"), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    transaction_id = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, default="N/A")
+    status = db.Column(db.String(20), default="Pending")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.String(100))
+    admin_note = db.Column(db.Text, default="N/A")
+
+    # Relationships
+    member = db.relationship("Member", backref=db.backref("loan_repayment_requests", lazy=True))
+    loan = db.relationship("Loan", backref=db.backref("repayment_requests", lazy=True))

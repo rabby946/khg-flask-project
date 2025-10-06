@@ -7,6 +7,9 @@ from flask import current_app, session, flash, redirect, url_for, request
 from models import Member
 import cloudinary
 import  sib_api_v3_sdk
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 cloudinary.config(
     cloud_name=Config.CLOUD_NAME,
     api_key=Config.CLOUD_API_KEY,

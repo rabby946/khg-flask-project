@@ -1,12 +1,20 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
-from sqlalchemy import func
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify, current_app
+from sqlalchemy import func, extract
 from extensions import db
-from models import Member, Loan, LoanApplication, Donation, Vote, VoteItem, Notification, MembershipApplication
+from models import Member, Loan, LoanApplication, Donation, Vote, VoteItem, Notification, DonationRequest, Admin, LoanRepaymentRequest
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
-from utils import upload_to_imgbb, member_required, g
+from utils import upload_to_imgbb, member_required, g, _send_async_email
 from sqlalchemy.exc import IntegrityError
 member_app = Blueprint("member", __name__, url_prefix="/member")
+import threading
+def sendMailhtml(recipient, subject, body, name):
+    if not isinstance(recipient, list):
+        recipient = [recipient]
+    cur_admin = Admin(full_name=name, role="Member")
+    html_body = render_template("email_template.html",subject=subject,body=body,year=datetime.now().year,sender=cur_admin )
+    app = current_app._get_current_object()
+    threading.Thread(target=_send_async_email,args=(app, recipient, subject, html_body, True),daemon=True,).start()
 
 # ---------------- Context processor ----------------
 @member_app.context_processor
@@ -169,14 +177,62 @@ def delete_notification(notification_id):
     db.session.delete(notification)
     db.session.commit()
     return jsonify({"success": True, "message": "Deleted"})
-
+    
 @member_app.route("/history")
 @member_required
 def history():
-    member = get_current_member()
-    donations = Donation.query.filter_by(member_id=member.member_id).order_by(Donation.donated_at.desc()).all()
-    loans = Loan.query.filter_by(member_id=member.member_id).order_by(Loan.issued_at.desc()).all()
-    return render_template("member/history.html",member=member, donations=donations, loans=loans)
+    # ---------- 1️⃣ Monthly donation data for ALL users ----------
+    monthly_data = (
+        db.session.query(
+            extract('year', Donation.donated_at).label('year'),
+            extract('month', Donation.donated_at).label('month'),
+            func.sum(Donation.amount).label('total_amount')
+        )
+        .group_by('year', 'month')
+        .order_by('year', 'month')
+        .all()
+    )
+
+    # ---------- 2️⃣ Generate all months from Jan 2022 to now ----------
+    start_date = datetime(2022, 1, 1)
+    now = datetime.now()
+    all_months = []
+    current = start_date
+    while current <= now:
+        all_months.append((current.year, current.month))
+        if current.month == 12:
+            current = datetime(current.year + 1, 1, 1)
+        else:
+            current = datetime(current.year, current.month + 1, 1)
+
+    # ---------- 3️⃣ Build summary ----------
+    monthly_dict = {
+        (int(row.year), int(row.month)): float(row.total_amount or 0)
+        for row in monthly_data
+    }
+
+    monthly_summaries = [
+        {
+            "year": y,
+            "month": m,
+            "month_name": datetime(y, m, 1).strftime("%B"),
+            "amount": monthly_dict.get((y, m), 0)
+        }
+        for (y, m) in all_months
+    ]
+
+    # ---------- 4️⃣ Global totals ----------
+    total_donations = db.session.query(func.coalesce(func.sum(Donation.amount), 0)).scalar()
+    total_remaining_loans = db.session.query(func.coalesce(func.sum(Loan.remaining_amount), 0)).scalar()
+    available_funds = total_donations - total_remaining_loans
+
+    return render_template(
+        "member/history.html",
+        member=get_current_member(),
+        monthly_summaries=monthly_summaries,
+        total_donations=total_donations,
+        available_funds=available_funds,
+    )
 
 @member_app.route("/voting", methods=["GET", "POST"])
 @member_required
@@ -226,3 +282,112 @@ def apply_loan():
         flash(f"Loan application for {amount} BDT submitted successfully!", "success")
         return redirect(url_for("member.profile"))
     return render_template("member/apply_loan.html", member=member)
+
+@member_app.route("/donation_request", methods=["GET", "POST"])
+@member_required
+def donation_request():
+    member = get_current_member()
+    if request.method == "POST":
+        amount = request.form.get("amount")
+        payment_method = request.form.get("payment_method")
+        transaction_id = request.form.get("transaction_id").strip() or "N/A"
+        message = request.form.get("message") or "N/A"
+        donation_type = request.form.get("donation_type")
+        tid = DonationRequest.query.filter_by(transaction_id=transaction_id).first()
+        if not amount or not payment_method or not transaction_id :
+            flash("Please fill in all required fields.", "warning")
+            return redirect(url_for("member.donation_request"))
+        if (tid and transaction_id != "N/A"):
+            flash("This transaction id already filled.", "warning")
+            return redirect(url_for("member.donation_request"))
+        try:
+            amount = float(amount)
+        except ValueError:
+            flash("Amount must be a valid number.", "danger")
+            return redirect(url_for("member.donation_request"))
+        new_request = DonationRequest(member_id=member.member_id,amount=amount,donation_type=donation_type,payment_method=payment_method,transaction_id=transaction_id,message=message,status="Pending",)
+        db.session.add(new_request)
+        db.session.commit()
+        try:
+            subject = f"New Donation Request from {member.name}"
+            message_body = f"""
+                <p>Hello Admin,</p>
+                <p>A new donation request has been submitted by <strong>{member.name}</strong> (Member ID: {member.member_id}).</p>
+                <p><b>Amount:</b> ${amount:.2f}<br>
+                <b>Donation Type:</b> {donation_type}<br>
+                <b>Payment Method:</b> {payment_method}<br>
+                <b>Transaction ID:</b> {transaction_id}<br>
+                <b>Message:</b> {message}</p>
+                <p>Submitted on: <strong>{new_request.created_at.strftime('%d %B %Y, %I:%M %p')}</strong></p>
+                <p>Please review this request in the admin panel.</p>
+                <p>— <b>KHG System</b></p>
+            """
+            sendMailhtml("korjehasanahgroup@gmail.com", subject, message_body, name=get_current_member().name)
+        except Exception as e:
+            print(f"[Email Error] Failed to notify admin: {e}")
+        flash("Donation request submitted successfully! Await admin approval.", "success")
+        return redirect(url_for("member.donation_request"))
+    requests = (DonationRequest.query.filter_by(member_id=member.member_id).order_by(DonationRequest.created_at.desc()).all())
+    return render_template("member/donation_request.html", member=member, requests=requests)
+
+@member_app.route("/loan_repayment_request", methods=["GET", "POST"])
+@member_required
+def loan_repayment_request():
+    member = get_current_member()
+
+    # Show only ongoing loans for this member
+    ongoing_loans = Loan.query.filter_by(member_id=member.member_id, status="ongoing").all()
+
+    if request.method == "POST":
+        loan_id = request.form.get("loan_id")
+        amount = request.form.get("amount")
+        payment_method = request.form.get("payment_method")
+        transaction_id = request.form.get("transaction_id").strip() or "N/A"
+        message = request.form.get("message") or "N/A"
+
+        # Validation
+        if not loan_id or not amount or not payment_method or not transaction_id:
+            flash("Please fill in all required fields.", "warning")
+            return redirect(url_for("member.loan_repayment_request"))
+
+        # Check if loan exists and belongs to the member
+        loan = Loan.query.filter_by(loan_id=loan_id, member_id=member.member_id).first()
+        if not loan:
+            flash("Invalid loan selected.", "danger")
+            return redirect(url_for("member.loan_repayment_request"))
+
+        # Duplicate transaction check
+        tid = LoanRepaymentRequest.query.filter_by(transaction_id=transaction_id).first()
+        if tid and transaction_id != "N/A":
+            flash("This transaction ID already exists.", "warning")
+            return redirect(url_for("member.loan_repayment_request"))
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                flash("Amount must be greater than 0.", "warning")
+                return redirect(url_for("member.loan_repayment_request"))
+        except ValueError:
+            flash("Amount must be a valid number.", "danger")
+            return redirect(url_for("member.loan_repayment_request"))
+        new_request = LoanRepaymentRequest(member_id=member.member_id,loan_id=loan_id,amount=amount,payment_method=payment_method,transaction_id=transaction_id,message=message,status="Pending")
+        db.session.add(new_request)
+        db.session.commit()
+        try:
+            email_body = f"""
+                <p>Dear Admin,</p>
+                <p><strong>{member.name}</strong> has submitted a new loan repayment request.</p>
+                <p><b>Loan ID:</b> {loan_id}<br>
+                <b>Amount:</b> ${amount:.2f}<br>
+                <b>Payment Method:</b> {payment_method}<br>
+                <b>Transaction ID:</b> {transaction_id}</p>
+                <p><b>Message:</b> {message}</p>
+                <p>Please log in to the admin panel to review and approve the request.</p>
+            """
+            sendMailhtml("korjehasanahgroup@gmail.com", "New Loan Repayment Request", email_body, get_current_member().name)
+        except Exception as e:
+            print(f"[Email Error] Failed to notify admin: {e}")
+        flash("Repayment request submitted successfully! Await admin approval.", "success")
+        return redirect(url_for("member.loan_repayment_request"))
+    requests = LoanRepaymentRequest.query.filter_by(member_id=member.member_id).order_by(LoanRepaymentRequest.created_at.desc()).all()
+    return render_template("member/loan_repayment_request.html", member=member, loans=ongoing_loans, requests=requests)

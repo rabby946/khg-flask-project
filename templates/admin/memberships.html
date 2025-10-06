@@ -39,22 +39,22 @@
                             </td>
                             <td>{{ app.applied_at.strftime("%d %b %Y") }}</td>
                             <td class="text-center">
-                                <a href="{{ url_for('admin.application_details', app_id=app.id) }}" 
+                                <a href="{{ url_for('membermanagement.application_details', app_id=app.id) }}" 
                                    class="btn btn-sm btn-info">
                                     Details
                                 </a>
 
                                 {% if app.status == "pending" %}
-                                    <a href="{{ url_for('admin.approve_membership', app_id=app.id) }}" 
+                                    <a href="{{ url_for('membermanagement.approve_membership', app_id=app.id) }}" 
                                        class="btn btn-sm btn-success">
                                         Approve
                                     </a>
-                                    <a href="{{ url_for('admin.reject_membership', app_id=app.id) }}" 
+                                    <a href="{{ url_for('membermanagement.reject_membership', app_id=app.id) }}" 
                                        class="btn btn-sm btn-danger">
                                         Reject
                                     </a>
                                 {% elif app.status == "rejected" %}
-                                    <form action="{{ url_for('admin.delete_membership', app_id=app.id) }}" 
+                                    <form action="{{ url_for('membermanagement.delete_membership', app_id=app.id) }}" 
                                           method="POST" style="display:inline;">
                                         <button type="submit" 
                                                 class="btn btn-sm btn-outline-danger"

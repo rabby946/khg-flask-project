@@ -1,0 +1,261 @@
+{% extends "member/base.html" %}
+
+{% block title %}Donation Request | KHG{% endblock %}
+
+{% block head_extra %}
+<style>
+    .page-wrapper {
+        padding: 2rem 1rem;
+        background-color: var(--bg);
+    }
+
+    .page-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        animation: fadeInUp 0.7s ease-out;
+    }
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+    .page-header p {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+    }
+    
+    .ledger-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .ledger-header {
+        padding: 2.5rem;
+        background-color: #fcfdff;
+        border-bottom: 1px solid var(--border);
+    }
+    .form-input, .form-select {
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+        padding: 0.75rem 1rem !important;
+        background-color: var(--bg) !important;
+        transition: all 0.2s ease !important;
+    }
+    .form-input:focus, .form-select:focus {
+        border-color: var(--brand) !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2) !important;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        background: var(--brand);
+        border: none;
+        padding: 0.85rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    .submit-btn:hover { background: var(--brand-dark); transform: translateY(-2px); }
+
+    .ledger-body h2 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--text);
+        padding: 1.5rem 2.5rem;
+        margin: 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .history-table {
+        margin: 0;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .history-table thead th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+    .history-table td, .history-table th {
+        vertical-align: middle;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border); /* Separator for rows */
+    }
+    .history-table tbody tr:last-child td {
+        border-bottom: none; /* No border for the last item */
+    }
+    
+    /* ====================================================================== */
+    /* START: New, More Vibrant Full-Row Status Coloring                      */
+    /* ====================================================================== */
+    .history-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    .history-table tr.status-approved { background-color: rgba(22, 163, 74, 0.1); }
+    .history-table tr.status-rejected { background-color: rgba(220, 38, 38, 0.1); }
+    .history-table tr.status-pending { background-color: rgba(245, 158, 11, 0.1); }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3em 0.75em; font-weight: 500; border-radius: 50px; }
+    .status-badge-success { background-color: #16a34a; color: #fff; }
+    .status-badge-danger { background-color: #dc2626; color: #fff; }
+    .status-badge-warning { background-color: #f59e0b; color: #fff; }
+    /* ====================================================================== */
+    /* END: New Status Coloring                                               */
+    /* ====================================================================== */
+
+    @media (max-width: 768px) {
+        .ledger-header, .ledger-body h2 { padding: 1.5rem; }
+        .history-table thead { display: none; }
+        .history-table tbody, .history-table tr, .history-table td { display: block; width: 100%; }
+        .history-table tr {
+            padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .history-table tbody { padding: 1.5rem; }
+        .history-table tr:last-child { margin-bottom: 0; }
+        .history-table td { padding: 0.5rem 0; border: none; display: flex; justify-content: space-between; text-align: right; }
+        .history-table td::before { content: attr(data-label); font-weight: 600; color: var(--text); text-align: left; margin-right: 1rem; }
+        .history-table tbody td { border-bottom: none; }
+    }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block member_content %}
+<div class="page-wrapper">
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Your Contributions</h1>
+            <p>Use this form to submit a new donation and view your history below.</p>
+        </div>
+        <div class="ledger-card">
+            <div class="ledger-header">
+                <form id="donation-form" method="POST" action="{{ url_for('member.donation_request') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label">Amount (BDT)</label>
+                            <input type="number" step="0.01" name="amount" id="amount" class="form-control form-input" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select name="payment_method" id="payment_method" class="form-select" required>
+                                <option value="" selected disabled>-- Select a method --</option>
+                                <option value="Bkash">Bkash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Rocket">Rocket</option>
+                                <option value="Cellfin">Cellfin</option>
+                                <option value="Upay">Upay</option>
+                                <option value="On Hand">On Hand</option>
+                                <option value="Bank Transaction">Bank Transaction</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                     <div class="mb-3">
+                        <label for="donation_type" class="form-label">Donation Type</label>
+                        <select name="donation_type" class="form-select" required>
+                        <option value="">Select type</option>
+                        <option value="General">General</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Zakat">Zakat</option>
+                        <option value="Sadaqah">Sadaqah</option>
+                        <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transaction_id" class="form-label">Transaction ID / Reference (for proof of transactions) </label>
+                        <input type="text" name="transaction_id" id="transaction_id" class="form-control form-input" >
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message (Optional)</label>
+                        <textarea name="message" id="message" rows="3" class="form-control form-input" placeholder="Any additional notes for the admin"></textarea>
+                    </div>
+                    <button type="submit" id="submit-btn" class="btn btn-primary submit-btn">
+                        <span class="btn-text">Submit Donation Request</span>
+                        <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                </form>
+            </div>
+            <div class="ledger-body">
+                <h2>Your Donation History</h2>
+                <div class="table-responsive">
+                    <table class="table history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Trx ID</th>
+                                <th>Status</th>
+                                <th>Reviewed by</th>
+                                <th>Admin's note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in requests %}
+                            <tr class="status-{{ r.status|lower }}">
+                                <td data-label="Date">{{ r.created_at.strftime("%d %b %Y") }}</td>
+                                <td data-label="Amount"><strong>৳{{ "{:,.2f}".format(r.amount) }}</strong></td>
+                                <td data-label="Method">{{ r.payment_method }}</td>
+                                <td data-label="Trx ID">{{ r.transaction_id }}</td>
+                                <td data-label="Status">
+                                    {% if r.status == "Approved" %}<span class="status-badge status-badge-success"><i class="fas fa-check-circle me-1"></i> {{ r.status }}</span>
+                                    {% elif r.status == "Rejected" %}<span class="status-badge status-badge-danger"><i class="fas fa-times-circle me-1"></i> {{ r.status }}</span>
+                                    {% else %}<span class="status-badge status-badge-warning"><i class="fas fa-clock me-1"></i> {{ r.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{r.updated_by}}</td>
+                                <td>{{r.admin_note}}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">You haven't made any donation requests yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const donationForm = document.getElementById('donation-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnSpinner = submitBtn.querySelector('.btn-spinner');
+
+        donationForm.addEventListener('submit', function(e) {
+            if (donationForm.checkValidity()) {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                if (btnText) btnText.textContent = 'Submitting...';
+                if (btnSpinner) btnSpinner.style.display = 'inline-block';
+                setTimeout(() => { donationForm.submit(); }, 500);
+            }
+        });
+    });
+</script>
+{% endblock %}
