@@ -131,11 +131,11 @@
             <div class="stat-card__icon"><i class="fa-solid fa-sack-dollar"></i></div>
             <div class="stat-card__info"><h5>Available Funds</h5><h4>{{ total_funds or 0 }} ৳</h4></div>
         </a>
-        <a href="{{ url_for('admin.memberships') }}" class="stat-card stat-card--blue" style="animation-delay: 0.2s;">
+        <a href="{{ url_for('membermanagement.memberships') }}" class="stat-card stat-card--blue" style="animation-delay: 0.2s;">
             <div class="stat-card__icon"><i class="fa-solid fa-user-plus"></i></div>
             <div class="stat-card__info"><h5>Pending Memberships</h5><h4>{{ pending_memberships or 0 }}</h4></div>
         </a>
-        <a href="{{ url_for('admin.loans') }}" class="stat-card stat-card--yellow" style="animation-delay: 0.3s;">
+        <a href="{{ url_for('loanapplication.loans') }}" class="stat-card stat-card--yellow" style="animation-delay: 0.3s;">
             <div class="stat-card__icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
             <div class="stat-card__info"><h5>Pending Loans</h5><h4>{{ pending_loans or 0 }}</h4></div>
         </a>

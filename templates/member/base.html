@@ -158,9 +158,10 @@
                 </button>
                 <ul class="user-menu__dropdown" id="user-menu-dropdown">
                     <li><a href="{{ url_for('member.profile') }}"><i class="icon fas fa-user-circle"></i> Profile</a></li>
-                    <li><a href="{{ url_for('member.apply_loan') }}"><i class="icon fas fa-hand-holding-dollar"></i> Apply for Loan</a></li>
-                    <li><a href="{{ url_for('member.history') }}"><i class="icon fas fa-history"></i> History</a></li>
                     <li><a href="{{ url_for('member.notifications') }}"><i class="icon fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="{{ url_for('member.history') }}"><i class="icon fas fa-history"></i>Donation status</a></li>
+                    <li><a href="{{ url_for('member.donation_request') }}"><i class="icon fas fa-hand-holding-dollar"></i> Donation Request</a></li>
+                    <li><a href="{{ url_for('member.apply_loan') }}"><i class="icon fas fa-hand-holding-dollar"></i>  Loan</a></li>        
                     <li><a href="{{ url_for('member.voting') }}"><i class="icon fas fa-check-to-slot"></i> Voting</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a href="{{ url_for('member.edit_profile') }}"><i class="icon fas fa-cog"></i> Edit Profile</a></li>

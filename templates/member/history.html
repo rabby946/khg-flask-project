@@ -1,96 +1,242 @@
 {% extends "member/base.html" %}
-
-{% block title %}History{% endblock %}
+{% block title %}Donation History | KHG{% endblock %}
 
 {% block member_content %}
-<div class="container-fluid">
+<style>
+    .dashboard-container {
+        --dash-primary: #0d6efd;
+        --dash-success: #198754;
+        --dash-card-bg: #ffffff;
+        --dash-border: #e9ecef;
+        --dash-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        --dash-text-dark: #212529;
+        --dash-text-light: #6c757d;
+        
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
 
-    <h3 class="mb-4 text-center">{{ member.name | default('Member') }}'s History</h3>
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    .dashboard-header h1 {
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+    
+    .stat-card {
+        background-color: var(--dash-card-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--dash-shadow);
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card__icon {
+        font-size: 1.8rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #fff;
+    }
+    .stat-card__icon--success { background-color: var(--dash-success); }
+    .stat-card__icon--primary { background-color: var(--dash-primary); }
+    
+    .stat-card__info h5 {
+        font-size: 1rem;
+        color: var(--dash-text-light);
+        margin-bottom: 0.25rem;
+    }
+    .stat-card__info h3 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .stat-card__info .text-success { color: var(--dash-success) !important; }
+    .stat-card__info .text-primary { color: var(--dash-primary) !important; }
 
-    <!-- Tabs for Donations & Loans -->
-    <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="donations-tab" data-bs-toggle="tab" data-bs-target="#donations" type="button" role="tab">Donations</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="loans-tab" data-bs-toggle="tab" data-bs-target="#loans" type="button" role="tab">Loans</button>
-        </li>
-    </ul>
+    /* Search Bar Styles */
+    .search-wrapper {
+        position: relative;
+        margin-top: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 45px;
+        border: 1px solid var(--dash-border);
+        border-radius: 50px;
+        font-size: 1rem;
+    }
+    .search-wrapper .fa-search {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--dash-text-light);
+    }
 
-    <div class="tab-content" id="historyTabsContent">
-        <!-- Donations Tab -->
-        <div class="tab-pane fade show active" id="donations" role="tabpanel">
-            {% if donations %}
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Amount (BDT)</th>
-                                <th>Date</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for donation in donations %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ donation.amount }}</td>
-                                <td>{{ donation.donated_at.strftime("%d %b %Y") }}</td>
-                                <td>{{ donation.notes or "-" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-center text-muted">No donations found.</p>
-            {% endif %}
+    .data-section {
+        background-color: var(--dash-card-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: 1rem;
+        box-shadow: var(--dash-shadow);
+        overflow: hidden;
+    }
+    .data-section__header {
+        padding: 1.25rem 1.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--dash-border);
+    }
+    .data-section__chart-wrapper {
+        padding: 1.5rem;
+        min-height: 400px; /* Increased chart height */
+        position: relative;
+    }
+    
+    /* Modern Striped Data Table */
+    .donation-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .donation-table thead th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        color: var(--dash-text-light);
+        background-color: #f8f9fa;
+    }
+    .donation-table tbody td {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--dash-border);
+        color: var(--dash-text-dark);
+    }
+    .donation-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa; /* Zebra striping */
+    }
+    .no-results-row { display: none; } /* Initially hide no-results row */
+</style>
+<div class="container my-4 dashboard-container">
+    <div class="dashboard-header">
+        <h1>Donation Dashboard</h1>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4"><div class="stat-card"><div class="stat-card__icon stat-card__icon--success"><i class="fas fa-donate"></i></div><div class="stat-card__info"><h5>Total Donations</h5><h3 class="text-success">{{ "{:,.2f}".format(total_donations) }} BDT</h3></div></div></div>
+        <div class="col-lg-6 mb-4"><div class="stat-card"><div class="stat-card__icon stat-card__icon--primary"><i class="fas fa-wallet"></i></div><div class="stat-card__info"><h5>Available Funds</h5><h3 class="text-primary">{{ "{:,.2f}".format(available_funds) }} BDT</h3></div></div></div>
+    </div>
+
+    
+
+    <div class="data-section">
+        <div class="data-section__header">
+            Monthly Contribution History
         </div>
-
-        <!-- Loans Tab -->
-        <div class="tab-pane fade" id="loans" role="tabpanel">
-            {% if loans %}
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Amount (BDT)</th>
-                                <th>Issued Date</th>
-                                
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for loan in loans %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ loan.approved_amount }}</td>
-                                <td>{{ loan.issued_at.strftime("%d %b %Y") }}</td>
-                                
-                                <td>{{loan.status}}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-center text-muted">No loans found.</p>
-            {% endif %}
+        
+        <div class="data-section__chart-wrapper">
+            <canvas id="donationChart"></canvas>
+        </div>
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control search-input" id="donation-search" placeholder="Search by month or year...">
+        </div>
+        <div class="table-responsive">
+            <table class="donation-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Year</th>
+                        <th>Total Donated</th>
+                    </tr>
+                </thead>
+                <tbody id="donation-table-body">
+                    {% for item in monthly_summaries|reverse %}
+                    <tr data-searchable="{{ item.month_name|lower }} {{ item.year }}">
+                        <td>{{ item.month_name }}</td>
+                        <td>{{ item.year }}</td>
+                        <td>{{ "{:,.2f}".format(item.amount) }} BDT</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No monthly donation data available.</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="no-results-row">
+                        <td colspan="3" class="text-center text-muted p-4">No results found for your search.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Optional: enable Bootstrap tabs via JS
-    var triggerTabList = [].slice.call(document.querySelectorAll('#historyTabs button'))
-    triggerTabList.forEach(function(triggerEl) {
-        var tabTrigger = new bootstrap.Tab(triggerEl)
-        triggerEl.addEventListener('click', function(event) {
-            event.preventDefault()
-            tabTrigger.show()
-        })
-    })
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Chart.js Initialization ---
+    const ctx = document.getElementById('donationChart');
+    if (ctx) {
+        const labels = [ {% for item in monthly_summaries|reverse %}'{{ item.month_name }} {{ item.year }}',{% endfor %} ];
+        const data = [ {% for item in monthly_summaries|reverse %}{{ item.amount }},{% endfor %} ];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Donation Amount (BDT)', data: data,
+                    backgroundColor: 'rgba(13, 110, 253, 0.6)', borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1, borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { callback: (value) => '৳' + value.toLocaleString() } } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (context) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'BDT' }).format(context.parsed.y) } }
+                }
+            }
+        });
+    }
+
+    // --- Live Search Filter for Table ---
+    const searchInput = document.getElementById('donation-search');
+    const tableBody = document.getElementById('donation-table-body');
+    const allRows = tableBody.querySelectorAll('tr[data-searchable]');
+    const noResultsRow = tableBody.querySelector('.no-results-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            let visibleCount = 0;
+
+            allRows.forEach(row => {
+                const rowData = row.dataset.searchable;
+                if (rowData.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
+        });
+    }
+});
 </script>
 {% endblock %}

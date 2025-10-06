@@ -148,11 +148,13 @@
         color: var(--loan-primary);
     }
 </style>
-
+<a href="{{ url_for('member.loan_repayment_request') }}"><i class="icon fas fa-hand-holding-dollar"></i> Loan Repay Request</a>
 <div class="loan-apply-container">
+    
     <div class="loan-form-card">
+        
         <div class="loan-form-header">
-            <h2 class="loan-form-title">Loan Application</h2>
+            <h2 class="loan-form-title">New Loan Application</h2>
             <p class="loan-form-subtitle">Please fill out the details below to submit your request.</p>
         </div>
         <div class="loan-form-body">
@@ -175,7 +177,7 @@
             </form>
         </div>
     </div>
-
+    
     <div class="loan-info-card">
         <h3 class="info-card-title">
             <i class="fas fa-info-circle"></i>

@@ -8,61 +8,288 @@
         --lm-font: 'Poppins', sans-serif;
         --lm-bg: #f8f9fa;
         --lm-card-bg: #ffffff;
-        --lm-primary: #0d6efd;
+        --lm-primary:  #0ea5e9;
         --lm-border: #e9ecef;
         --lm-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
         --lm-text-dark: #212529;
         --lm-text-light: #6c757d;
     }
 
-    .lm-container { font-family: var(--lm-font); animation: fadeIn 0.5s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .page-actions {
+        display: flex;
+        
+        gap: 0.75rem;
+        padding: 1rem;
+        background-color: var(--lm-card-bg);
+        border: 1px solid var(--lm-border);
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.5rem;
+        background-color:   #0ea5e9;
+        /* Light gray background */
+        color: white;
+        border: 1px solid var(--lm-border);
+        transition: all 0.2s ease-in-out;
+    }
 
-    .lm-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-    .lm-title { font-size: 2rem; font-weight: 600; color: var(--lm-text-dark); }
-    .lm-search-wrapper { position: relative; min-width: 300px; }
-    .lm-search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9CA3AF; }
-    .lm-search-input { width: 100%; padding: 10px 1rem 10px 2.5rem; border: 1px solid var(--lm-border); border-radius: 50px; font-size: 1rem; }
+    .btn-action:hover {
+        background-color: #e9ecef;
+        /* Slightly darker on hover */
+        border-color: #dee2e6;
+        transform: translateY(-2px);
+    }
+
+    .btn-action.active {
+        background-color: var(--lm-primary);
+        color: #fff;
+        border-color: var(--lm-primary);
+        box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+    .lm-container {
+        font-family: var(--lm-font);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .lm-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .lm-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--lm-text-dark);
+    }
+
+    .lm-search-wrapper {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .lm-search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+    }
+
+    .lm-search-input {
+        width: 100%;
+        padding: 10px 1rem 10px 2.5rem;
+        border: 1px solid var(--lm-border);
+        border-radius: 50px;
+        font-size: 1rem;
+    }
 
     /* Tab Styles */
-    .nav-tabs { border-bottom-color: var(--lm-border); }
-    .nav-tabs .nav-link { font-weight: 500; color: var(--lm-text-light); border: none; border-bottom: 3px solid transparent; }
-    .nav-tabs .nav-link.active { font-weight: 600; color: var(--lm-primary); border-bottom-color: var(--lm-primary); }
+    .nav-tabs {
+        border-bottom-color: var(--lm-border);
+    }
 
-    .lm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-    @media (min-width: 1400px) { .lm-grid { grid-template-columns: repeat(5, 1fr); } }
+    .nav-tabs .nav-link {
+        font-weight: 500;
+        color: var(--lm-text-light);
+        border: none;
+        border-bottom: 3px solid transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: var(--lm-primary);
+        border-bottom-color: var(--lm-primary);
+    }
+
+    .lm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    @media (min-width: 1400px) {
+        .lm-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
 
     .lm-card {
-        background-color: var(--lm-card-bg); border: 1px solid var(--lm-border);
-        border-radius: 1rem; text-align: center; padding: 1.5rem;
-        transition: all 0.3s ease; display: flex; flex-direction: column;
+        background-color: var(--lm-card-bg);
+        border: 1px solid var(--lm-border);
+        border-radius: 1rem;
+        text-align: center;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
     }
-    .lm-card.is-hidden { display: none; }
-    .lm-card:hover { transform: translateY(-5px); box-shadow: var(--lm-shadow); }
-    
-    .lm-card__avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem auto; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .lm-card__name { font-size: 1.1rem; font-weight: 600; color: var(--lm-text-dark); margin-bottom: 0.25rem; }
-    .lm-card__id { font-size: 0.85rem; color: var(--lm-text-light); margin-bottom: 1.5rem; }
-    .lm-card__action-btn { margin-top: auto; width: 100%; padding: 0.6rem; font-size: 0.9rem; font-weight: 500; border-radius: 0.5rem; border: none; background-color: var(--lm-primary); color: #fff; cursor: pointer; transition: background-color 0.2s ease; }
-    .lm-card__action-btn:hover { background-color: #0b5ed7; }
-    
-    .lm-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2.5rem; }
-    .lm-pagination button { background-color: #fff; border: 1px solid var(--lm-border); padding: 0.5rem 1rem; border-radius: 0.5rem; }
-    .lm-pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
-    
+
+    .lm-card.is-hidden {
+        display: none;
+    }
+
+    .lm-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--lm-shadow);
+    }
+
+    .lm-card__avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 1rem auto;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .lm-card__name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--lm-text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .lm-card__id {
+        font-size: 0.85rem;
+        color: var(--lm-text-light);
+        margin-bottom: 1.5rem;
+    }
+
+    .lm-card__action-btn {
+        margin-top: auto;
+        width: 100%;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: var(--lm-primary);
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .lm-card__action-btn:hover {
+        background-color: #0b5ed7;
+    }
+
+    .lm-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2.5rem;
+    }
+
+    .lm-pagination button {
+        background-color: #fff;
+        border: 1px solid var(--lm-border);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .lm-pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     /* Modal Styles */
-    .lm-modal-backdrop { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
-    .lm-modal-backdrop.is-visible { display: flex; opacity: 1; }
-    .lm-modal { background-color: var(--lm-card-bg); border-radius: 1rem; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); transform: scale(0.95); transition: transform 0.3s ease; }
-    .lm-modal-backdrop.is-visible .lm-modal { transform: scale(1); }
-    .lm-modal__header { padding: 1.5rem; border-bottom: 1px solid var(--lm-border); display: flex; justify-content: space-between; align-items: center; }
-    .lm-modal__title { font-size: 1.25rem; font-weight: 600; margin: 0; }
-    .lm-modal__close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-    .lm-modal__body { padding: 1.5rem; }
+    .lm-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(17, 24, 39, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 2000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .lm-modal-backdrop.is-visible {
+        display: flex;
+        opacity: 1;
+    }
+
+    .lm-modal {
+        background-color: var(--lm-card-bg);
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+
+    .lm-modal-backdrop.is-visible .lm-modal {
+        transform: scale(1);
+    }
+
+    .lm-modal__header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--lm-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .lm-modal__title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .lm-modal__close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .lm-modal__body {
+        padding: 1.5rem;
+    }
 
     /* All Loans Table Styles */
-    .table-card { border: 1px solid var(--lm-border); border-radius: 1rem; background-color: #fff; overflow: hidden; box-shadow: var(--lm-shadow); }
+    .table-card {
+        border: 1px solid var(--lm-border);
+        border-radius: 1rem;
+        background-color: #fff;
+        overflow: hidden;
+        box-shadow: var(--lm-shadow);
+    }
 </style>
+
+
+    
 
 <div class="lm-container">
     <div class="lm-header">
@@ -72,13 +299,25 @@
             <input type="text" id="main-search" class="lm-search-input" placeholder="Search members by name or ID...">
         </div>
     </div>
-
+    <div class="page-actions">
+        <a href="{{ url_for('loanapplication.loans') }}"
+            class="btn btn-action {% if 'loanapplication' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-file-invoice-dollar me-2"></i>
+            Loan Applications
+        </a>
+        <a href="{{ url_for('loanmanagement.loan_repayment_requests') }}" class="btn btn-action">
+            <i class="fas fa-hand-holding-dollar me-2"></i>
+            Repayment Requests
+        </a>
+    </div>
     <ul class="nav nav-tabs" id="management-tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="transactions-tab-btn" data-bs-toggle="tab" data-bs-target="#transactions-tab-pane" type="button" role="tab">New Transaction</button>
+            <button class="nav-link active" id="transactions-tab-btn" data-bs-toggle="tab"
+                data-bs-target="#transactions-tab-pane" type="button" role="tab">New Transaction</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="all-loans-tab-btn" data-bs-toggle="tab" data-bs-target="#all-loans-tab-pane" type="button" role="tab">All Ongoing Loans</button>
+            <button class="nav-link" id="all-loans-tab-btn" data-bs-toggle="tab" data-bs-target="#all-loans-tab-pane"
+                type="button" role="tab">All Ongoing Loans</button>
         </li>
     </ul>
 
@@ -87,10 +326,12 @@
             <div class="lm-grid" id="member-grid">
                 {% for member in members %}
                 <div class="lm-card" data-name="{{ member.name|lower }}" data-id="{{ member.member_id }}">
-                    <img src="{{ member.photo_url or url_for('static', filename='images/default-profile.png') }}" alt="Photo of {{ member.name }}" class="lm-card__avatar">
+                    <img src="{{ member.photo_url or url_for('static', filename='images/default-profile.png') }}"
+                        alt="Photo of {{ member.name }}" class="lm-card__avatar">
                     <h3 class="lm-card__name">{{ member.name }}</h3>
                     <p class="lm-card__id">Member ID: {{ member.member_id }}</p>
-                    <button class="lm-card__action-btn" data-member-id="{{ member.member_id }}" data-member-name="{{ member.name }}">
+                    <button class="lm-card__action-btn" data-member-id="{{ member.member_id }}"
+                        data-member-name="{{ member.name }}">
                         <i class="fas fa-plus-circle me-2"></i>New Transaction
                     </button>
                 </div>
@@ -102,12 +343,13 @@
                 <span id="page-info"></span>
                 <button id="next-page">Next <i class="fas fa-arrow-right"></i></button>
             </div>
-            <p id="no-results-message" class="text-center text-muted mt-5" style="display: none;">No members found matching your search.</p>
+            <p id="no-results-message" class="text-center text-muted mt-5" style="display: none;">No members found
+                matching your search.</p>
         </div>
 
         <div class="tab-pane fade" id="all-loans-tab-pane" role="tabpanel">
             <div class="table-card">
-                 <div class="table-responsive">
+                <div class="table-responsive">
                     <table class="table table-hover" id="ongoing-loans-table">
                         <thead>
                             <tr>
@@ -120,17 +362,19 @@
                         </thead>
                         <tbody>
                             {% for loan in loans %}
-                                {% if loan.status != "paid" %}
-                                <tr>
-                                    <td class="p-3">#{{ loan.loan_id }}</td>
-                                    <td class="p-3">{{ loan.member.name }}</td>
-                                    <td class="p-3">{{ "%.2f"|format(loan.approved_amount) }}</td>
-                                    <td class="p-3">{{ "%.2f"|format(loan.remaining_amount) }}</td>
-                                    <td class="p-3">{{ loan.issued_at.strftime("%d %b %Y") }}</td>
-                                </tr>
-                                {% endif %}
+                            {% if loan.status != "paid" %}
+                            <tr>
+                                <td class="p-3">#{{ loan.loan_id }}</td>
+                                <td class="p-3">{{ loan.member.name }}</td>
+                                <td class="p-3">{{ "%.2f"|format(loan.approved_amount) }}</td>
+                                <td class="p-3">{{ "%.2f"|format(loan.remaining_amount) }}</td>
+                                <td class="p-3">{{ loan.issued_at.strftime("%d %b %Y") }}</td>
+                            </tr>
+                            {% endif %}
                             {% endfor %}
-                            <tr class="no-results-row" style="display: none;"><td colspan="5" class="text-center p-4 text-muted">No loans found.</td></tr>
+                            <tr class="no-results-row" style="display: none;">
+                                <td colspan="5" class="text-center p-4 text-muted">No loans found.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -159,13 +403,14 @@
                 <div class="form-group mb-3" id="modal_loan_id_group" style="display: none;">
                     <label for="modal_loan_id" class="form-label fw-bold">Select Loan to Repay</label>
                     <select class="form-select" name="loan_id" id="modal_loan_id">
-                        </select>
+                    </select>
                 </div>
                 <div class="form-group mb-3">
                     <label for="modal_amount" class="form-label fw-bold">Amount (BDT)</label>
                     <input type="number" step="0.01" class="form-control" name="amount" id="modal_amount" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 mt-3 py-2 fw-bold" id="submit-transaction-btn">Submit Transaction</button>
+                <button type="submit" class="btn btn-primary w-100 mt-3 py-2 fw-bold" id="submit-transaction-btn">Submit
+                    Transaction</button>
             </form>
         </div>
     </div>
@@ -174,11 +419,11 @@
 
 {% block scripts %}
 <script>
-// This is the full, correct, and functional script for this page.
-document.addEventListener('DOMContentLoaded', function () {
-    // --- DATA STORE ---
-    const allLoans = {
-        {% for loan in loans %}{% if loan.status != 'paid' %}"{{ loan.loan_id }}": { memberId: "{{ loan.member_id }}", text: "Loan #{{ loan.loan_id }} | Rem: {{ '%.2f'|format(loan.remaining_amount) }}" },{% endif %}{% endfor %}
+    // This is the full, correct, and functional script for this page.
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- DATA STORE ---
+        const allLoans = {
+        {% for loan in loans %} {% if loan.status != 'paid' %} "{{ loan.loan_id }}": { memberId: "{{ loan.member_id }}", text: "Loan #{{ loan.loan_id }} | Rem: {{ '%.2f'|format(loan.remaining_amount) }}" }, {% endif %} {% endfor %}
     };
 
     // --- ELEMENT SELECTORS ---
@@ -204,11 +449,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalLoanGroup = document.getElementById('modal_loan_id_group');
     const modalLoanSelect = document.getElementById('modal_loan_id');
     const modalAmountInput = document.getElementById('modal_amount');
-    
+
     // MODIFICATION: Added selectors for the form and its submit button
     const transactionForm = document.getElementById('transaction-form');
     const submitTransactionBtn = document.getElementById('submit-transaction-btn');
-    
+
     // --- STATE ---
     let currentPage = 1;
     const cardsPerPage = 12;
@@ -218,10 +463,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const searchTerm = searchInput.value.toLowerCase();
         const visibleCards = allMemberCards.filter(card => card.dataset.name.includes(searchTerm) || card.dataset.id.includes(searchTerm));
         noResultsMsg.style.display = visibleCards.length === 0 ? 'block' : 'none';
-        
+
         const totalPages = Math.ceil(visibleCards.length / cardsPerPage);
         currentPage = Math.max(1, Math.min(currentPage, totalPages || 1));
-        
+
         allMemberCards.forEach(card => card.style.display = 'none');
         const startIndex = (currentPage - 1) * cardsPerPage;
         visibleCards.slice(startIndex, startIndex + cardsPerPage).forEach(card => card.style.display = 'flex');
@@ -243,13 +488,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.style.display = 'none';
             }
         });
-        if(loanNoResultsRow) loanNoResultsRow.style.display = (visibleCount === 0) ? '' : 'none';
+        if (loanNoResultsRow) loanNoResultsRow.style.display = (visibleCount === 0) ? '' : 'none';
     };
 
     const openModal = (memberId, memberName) => {
         modalTitle.textContent = `New Transaction for ${memberName}`;
         modalMemberIdInput.value = memberId;
-        
+
         modalLoanSelect.innerHTML = '<option value="">-- Select Existing Loan --</option>';
         for (const loanId in allLoans) {
             if (allLoans[loanId].memberId == memberId) {
@@ -259,14 +504,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalLoanSelect.appendChild(option);
             }
         }
-        
+
         modalActionSelect.value = '';
         modalAmountInput.value = ''; // Clear amount field on open
         modalLoanGroup.style.display = 'none';
         modalLoanSelect.required = false;
         modalBackdrop.classList.add('is-visible');
     };
-    
+
     // MODIFICATION: Updated closeModal to reset the submit button's state
     const closeModal = () => {
         modalBackdrop.classList.remove('is-visible');
@@ -290,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
     nextButton.addEventListener('click', () => { currentPage++; updateMemberGridView(); });
 
     document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function(event) {
+        tab.addEventListener('shown.bs.tab', function (event) {
             searchInput.value = '';
             if (event.target.id === 'transactions-tab-btn') {
                 searchInput.placeholder = "Search members by name or ID...";
@@ -321,15 +566,15 @@ document.addEventListener('DOMContentLoaded', function () {
     modalBackdrop.addEventListener('click', e => {
         if (e.target === modalBackdrop) closeModal();
     });
-    
+
     // --- NEW: Confirmation and Submit Logic ---
-    transactionForm.addEventListener('submit', function(e) {
+    transactionForm.addEventListener('submit', function (e) {
         e.preventDefault(); // Stop the form from submitting immediately
 
         const memberName = modalTitle.textContent.replace('New Transaction for ', '');
         const actionType = modalActionSelect.value;
         const amount = parseFloat(modalAmountInput.value).toFixed(2);
-        
+
         let confirmMsg = '';
 
         if (actionType === 'borrow') {
@@ -344,13 +589,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // If user confirms, disable the button and show a processing state
             submitTransactionBtn.disabled = true;
             submitTransactionBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>Processing...`;
-            
+
             // Now, submit the form programmatically
             e.target.submit();
         }
         // If the user clicks "Cancel", nothing happens.
     });
-    
+
     // --- INITIAL LOAD ---
     updateMemberGridView();
 });

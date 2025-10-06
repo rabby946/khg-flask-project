@@ -4,6 +4,23 @@
 
 {% block head_extra %}
 <style>
+    :root {
+        /* Define your CSS variables here if they aren't in base.html */
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --brand: #0ea5e9; /* Example: sky-500 */
+        --text-dark: #1f2937; /* Example: gray-800 */
+        --text-light: #4b5563; /* Example: gray-600 */
+        --text-muted: #6b7280; /* Example: gray-500 */
+        --bg: #f9fafb; /* Example: gray-50 */
+        --card-bg: #ffffff;
+        --border: #d1d5db; /* Example: gray-300 */
+        --border-subtle: #e5e7eb; /* Example: gray-200 */
+        --radius: 12px;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
     main {
         padding: 0 !important;
         max-width: none;
@@ -12,14 +29,14 @@
 
     .login-portal-wrapper {
         font-family: var(--font-sans);
-        min-height: calc(100dvh - 128px);
-        padding: 2rem;
+        min-height: calc(100dvh - 128px); /* Assumes 128px for header/footer */
+        padding: 2rem 1.5rem; /* Added horizontal padding */
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
         overflow: hidden;
-        perspective: 1500px;
+        perspective: 1800px; /* MODIFIED: Increased perspective for a subtler 3D effect */
     }
 
     /* Animated Gradient Background */
@@ -27,32 +44,46 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(-45deg, #f7f4fd, #f0edfed9, #e3fafe, #ecffed);
+        /* MODIFIED: Subtler, professional gradient */
+        background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #f0f9ff, #f8fafc);
         background-size: 400% 400%;
-        animation: gradientBG 18s ease infinite;
+        animation: gradientBG 20s ease infinite;
         z-index: 1;
     }
+
     @keyframes gradientBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
+    
     a.text-decoration-none {
         color: var(--brand);
         font-size: 0.9rem;
         font-weight: 500;
+        transition: color 0.2s ease;
     }
+
     a.text-decoration-none:hover {
         text-decoration: underline;
+        color: #0284c7;
     }
 
     .login-card-scene {
         position: relative;
         z-index: 2;
         width: 100%;
-        max-width: 420px;
-        height: 530px;
+        /* MODIFIED: Increased card size for better presence */
+        max-width: 460px;
+        height: 580px;
+        transition: transform 0.3s ease-out; /* NEW: Added hover effect */
     }
+    
+    /* NEW: Add a subtle lift on hover */
+    .login-card-scene:hover {
+        transform: translateZ(20px);
+    }
+
     .login-card {
         width: 100%;
         height: 100%;
@@ -60,6 +91,7 @@
         transform-style: preserve-3d;
         transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
     }
+
     .login-card.is-flipped {
         transform: rotateY(180deg);
     }
@@ -72,74 +104,145 @@
         -webkit-backface-visibility: hidden;
         
         background-color: var(--card-bg);
-        border: 1px solid var(--border);
+        border: 1px solid var(--border-subtle);
         border-radius: var(--radius);
-        box-shadow: var(--shadow-md);
-        padding: 2.5rem;
+        box-shadow: var(--shadow-lg); /* MODIFIED: Using a larger, softer shadow */
+        padding: 3rem; /* MODIFIED: Increased padding for more whitespace */
         color: var(--text-dark);
-        animation: fadeIn 0.7s ease-out forwards;
+        display: flex; /* NEW: Use flexbox for better vertical alignment */
+        flex-direction: column; /* NEW */
     }
+
     .login-card__face--back {
         transform: rotateY(180deg);
     }
     
-    .login-header { text-align: center; margin-bottom: 2rem; }
-    .login-title { font-size: 1.75rem; font-weight: 600; color: var(--text-dark); }
+    .login-header {
+        text-align: center;
+        margin-bottom: 2.5rem; /* MODIFIED */
+    }
+
+    .login-title {
+        font-size: 2rem; /* MODIFIED */
+        font-weight: 700; /* MODIFIED */
+        color: var(--text-dark);
+    }
+    
+    form {
+        flex-grow: 1; /* NEW: Allows form to fill space */
+    }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.75rem; /* MODIFIED */
     }
+
     .form-group label {
         font-weight: 500;
         font-size: 0.9rem;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.5rem; /* MODIFIED */
         display: block;
-        color: var(--text-muted);
+        color: var(--text-light); /* MODIFIED: Slightly darker for better contrast */
     }
 
     .input-group { position: relative; }
+
     .form-control {
+        width: 100%; /* Ensure it fills the container */
         background-color: var(--bg);
         border: 1px solid var(--border);
+        border-radius: 8px; /* MODIFIED */
         color: var(--text-dark);
-        padding-left: 2.75rem;
+        /* MODIFIED: Increased padding and font size */
+        padding: 0.85rem 1rem 0.85rem 3rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+
     .form-control::placeholder { color: #9ca3af; }
+    
     .form-control:focus {
         background-color: #fff;
         box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
         border-color: var(--brand);
-        color: var(--text-dark);
+        outline: none;
     }
-    .input-group-icon { position: absolute; top: 50%; left: 1rem; transform: translateY(-50%); color: var(--text-muted); }
+
+    .input-group-icon {
+        position: absolute;
+        top: 50%;
+        left: 1.15rem; /* MODIFIED */
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 1rem; /* NEW */
+        pointer-events: none; /* NEW: Prevents icon from capturing mouse events */
+    }
     
     .btn-submit {
         font-weight: 600;
-        padding: 0.75rem;
+        font-size: 1rem; /* NEW */
+        padding: 0.85rem; /* MODIFIED */
         border-radius: 8px;
         box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease-out;
+        /* MODIFIED: More specific transitions */
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-out;
         border: none;
-        cursor: pointer; /* <-- THE FIX IS HERE */
+        cursor: pointer;
+        width: 100%;
+        margin-top: 0.5rem; /* MODIFIED */
     }
+
     .btn-submit:hover {
         transform: translateY(-3px);
         filter: brightness(1.05);
         box-shadow: var(--shadow-md);
     }
     
-    .btn-member { background-color: var(--brand); }
-    .btn-admin { background-color: var(--brand); }
+    .btn-member, .btn-admin {
+        background-color: var(--brand);
+        color: white;
+    }
+    /* MODIFIED: Admin button with a distinct but professional color */
+    .btn-admin {
+        background-color: var(--text-dark);
+    }
+    .btn-admin:hover {
+        background-color: #000;
+    }
 
     .switch-form-link {
-        display: block; text-align: center; margin-top: 1.5rem;
-        color: var(--text-light); text-decoration: none;
-        font-weight: 500; cursor: pointer; transition: color 0.2s ease;
+        display: block;
+        text-align: center;
+        margin-top: auto; /* NEW: Pushes link to the bottom */
+        padding-top: 1.5rem; /* NEW: Ensures space above it */
+        color: var(--text-light);
+        text-decoration: none;
+        font-size: 0.95rem; /* MODIFIED */
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease;
     }
-    .switch-form-link:hover { color: var(--brand); text-decoration: underline; }
+
+    .switch-form-link:hover {
+        color: var(--brand);
+        text-decoration: underline;
+    }
     
-    .logged-in-link { display: block; text-align: center; margin-top: 1rem; padding: 0.75rem; background-color: var(--border-subtle); border-radius: 8px; color: var(--text-dark); font-weight: 500; text-decoration: none; transition: background-color 0.2s ease; }
-    .logged-in-link:hover { background-color: var(--border); }
+    .logged-in-link {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background-color: var(--border-subtle);
+        border-radius: 8px;
+        color: var(--text-dark);
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .logged-in-link:hover {
+        background-color: var(--border);
+    }
 </style>
 {% endblock %}
 
@@ -155,29 +258,28 @@
                 </div>
                 <form method="POST" action="{{ url_for('member.login') }}">
                     <div class="form-group">
-                        <label for="member-nid">NID Number</label>
+                        <label for="member-nid">Phone Number</label>
                         <div class="input-group">
-                            <i class="fas fa-id-card input-group-icon"></i>
-                            <input type="text" class="form-control" id="member-nid" name="nid" placeholder="" required>
+                            <i class="fas fa-phone input-group-icon"></i>
+                            <input type="text" class="form-control" id="member-nid" name="nid" placeholder="e.g., 01712345678" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="member-password">Password</label>
                         <div class="input-group">
                             <i class="fas fa-lock input-group-icon"></i>
-                            <input type="password" class="form-control" id="member-password" name="password" placeholder="" required>
+                            <input type="password" class="form-control" id="member-password" name="password" placeholder="Enter your password" required>
                         </div>
                     </div>
                     <a href="{{ url_for('public.forgot_password') }}" class="d-block text-center mb-3 text-decoration-none">
                         Forgot your password?
                     </a>
-                    <button type="submit" class="btn btn-primary btn-submit w-100 mt-3 btn-member">Login</button>
+                    <button type="submit" class="btn btn-submit btn-member">Login</button>
                     
+                    {% if session.get('member_logged_in') %}
+                        <a href="{{ url_for('member.profile') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Your Profile</a>
+                    {% endif %}
                 </form>
-
-                {% if session.get('member_logged_in') %}
-                    <a href="{{ url_for('member.profile') }}" class="logged-in-link"><i class="fas fa-check-circle text-success me-2"></i>Go to Your Profile</a>
-                {% endif %}
 
                 <a class="switch-form-link" data-flip-target="login-card">Are you an Admin? Login here.</a>
             </div>
@@ -191,20 +293,20 @@
                         <label for="admin-username">Username</label>
                         <div class="input-group">
                             <i class="fas fa-user-shield input-group-icon"></i>
-                            <input type="text" class="form-control" id="admin-username" name="username" placeholder="" required>
+                            <input type="text" class="form-control" id="admin-username" name="username" placeholder="Enter admin username" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="admin-password">Password</label>
                         <div class="input-group">
                             <i class="fas fa-key input-group-icon"></i>
-                            <input type="password" class="form-control" id="admin-password" name="password" placeholder="" required>
+                            <input type="password" class="form-control" id="admin-password" name="password" placeholder="Enter admin password" required>
                         </div>
                     </div>
                     <a href="{{ url_for('public.forgot_password') }}" class="d-block text-center mb-3 text-decoration-none">
                         Forgot your password?
                     </a>
-                    <button type="submit" class="btn btn-dark btn-submit w-100 mt-3 btn-admin">Login</button>
+                    <button type="submit" class="btn btn-submit btn-admin">Login</button>
                 </form>
 
                 {% if session.get('admin_logged_in') %}

@@ -56,10 +56,10 @@
             </div>
 
             <div class="mt-3">
-                <a href="{{ url_for('admin.memberships') }}" class="btn btn-secondary">← Back</a>
+                <a href="{{ url_for('membermanagement.memberships') }}" class="btn btn-secondary">← Back</a>
                 {% if application.status == "pending" %}
-                    <a href="{{ url_for('admin.approve_membership', app_id=application.id) }}" class="btn btn-success">Approve</a>
-                    <a href="{{ url_for('admin.reject_membership', app_id=application.id) }}" class="btn btn-danger">Reject</a>
+                    <a href="{{ url_for('membermanagement.approve_membership', app_id=application.id) }}" class="btn btn-success">Approve</a>
+                    <a href="{{ url_for('membermanagement.reject_membership', app_id=application.id) }}" class="btn btn-danger">Reject</a>
                 {% endif %}
             </div>
         </div>

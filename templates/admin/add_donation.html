@@ -213,12 +213,13 @@
 <header class="donation-header">
     <h1>Donation Management</h1>
     <p>Securely record and view recent contributions from members.</p>
+    <li><a href="{{ url_for('donationmanagement.donation_requests') }}"><i class="icon fa-solid fa-users"></i> Donation requests</a></li>
 </header>
 
 <div class="donation-grid">
     <div class="donation-card form-card">
         <h2 class="card-title"><i class="fas fa-hand-holding-heart me-2"></i> Add New Donation</h2>
-        <form id="donation-form" method="POST" action="{{ url_for('admin.add_donation') }}">
+        <form id="donation-form" method="POST" action="{{ url_for('donationmanagement.add_donation') }}">
             <div class="mb-3">
                 <label for="member_id" class="form-label">Select Member</label>
                 <select id="member_id" name="member_id" required placeholder="Search for a member...">
