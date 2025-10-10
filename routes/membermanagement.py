@@ -124,6 +124,7 @@ def approve_membership(app_id):
     if app.status != "pending":
         flash("This application has already been reviewed.", "warning")
         return redirect(url_for("membermanagement.memberships"))
+    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
     new_member = Member(name=app.name, father_name=app.father_name,email=app.email,phone=app.phone,address=app.address,gender=app.gender,date_of_birth=app.date_of_birth,oath_paper_url=app.oath_paper_url,nid=app.nid,password_hash=app.password_hash,occupation=app.occupation,photo_url=app.photo_url,join_date=datetime.utcnow())
     html_body = render_template("emails/membership_approved.html",member=new_member,year=datetime.utcnow().year,admin_role=cur_admin.role)
     new_member.password_hash = generate_password_hash(app.password_hash)
