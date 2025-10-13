@@ -179,4 +179,83 @@ def donation_history():
     total_remaining_loans = db.session.query(func.coalesce(func.sum(Loan.remaining_amount), 0)).scalar()
     available_funds = total_donations - total_remaining_loans
     return render_template("admin/donation_history.html",monthly_summaries=monthly_summaries,total_donations=total_donations,available_funds=available_funds,)
+from flask import Response
+from io import StringIO
+import csv
+CSV_COLUMNS = ["Record Type","Member ID","Member Name","Loan ID","Transaction ID","Donation ID","Amount","Donation Type","Transaction Type","Payment Method","Message","Status","Created At","Updated At","Updated By","Admin Note",]
 
+@admin_app.route("/fund_history/export_full")
+@admin_required
+def export_full_fund_history():
+    # Optional filters
+    member_id = request.args.get("member_id", "all")
+    sort_order = request.args.get("sort", "desc")
+
+    # Base queries
+    donations = (
+        db.session.query(Donation, Member)
+        .join(Member, Donation.member_id == Member.member_id)
+    )
+    donation_requests = (
+        db.session.query(DonationRequest, Member)
+        .join(Member, DonationRequest.member_id == Member.member_id)
+    )
+    loan_txns = (
+        db.session.query(LoanTransaction, Loan, Member)
+        .join(Loan, LoanTransaction.loan_id == Loan.loan_id)
+        .join(Member, Loan.member_id == Member.member_id)
+    )
+    repay_requests = (
+        db.session.query(LoanRepaymentRequest, Loan, Member)
+        .join(Loan, LoanRepaymentRequest.loan_id == Loan.loan_id)
+        .join(Member, LoanRepaymentRequest.member_id == Member.member_id)
+    )
+
+    # Filtering by member (if needed)
+    if member_id != "all":
+        donations = donations.filter(Donation.member_id == int(member_id))
+        donation_requests = donation_requests.filter(DonationRequest.member_id == int(member_id))
+        loan_txns = loan_txns.filter(Loan.member_id == int(member_id))
+        repay_requests = repay_requests.filter(LoanRepaymentRequest.member_id == int(member_id))
+
+    # Sorting (newest first)
+    if sort_order == "asc":
+        donations = donations.order_by(Donation.donated_at.asc())
+        donation_requests = donation_requests.order_by(DonationRequest.created_at.asc())
+        loan_txns = loan_txns.order_by(LoanTransaction.created_at.asc())
+        repay_requests = repay_requests.order_by(LoanRepaymentRequest.created_at.asc())
+    else:
+        donations = donations.order_by(Donation.donated_at.desc())
+        donation_requests = donation_requests.order_by(DonationRequest.created_at.desc())
+        loan_txns = loan_txns.order_by(LoanTransaction.created_at.desc())
+        repay_requests = repay_requests.order_by(LoanRepaymentRequest.created_at.desc())
+
+    # Prepare output
+    si = StringIO()
+    writer = csv.DictWriter(si, fieldnames=CSV_COLUMNS)
+    writer.writeheader()
+
+    # ---- Donations ----
+    for d, m in donations:
+        writer.writerow({"Record Type": "Donation","Member ID": m.member_id,"Member Name": m.name,"Donation ID": d.donation_id,"Amount": float(d.amount),"Donation Type": d.donation_type,"Created At": d.donated_at.strftime("%Y-%m-%d %H:%M:%S"),})
+
+    # ---- Donation Requests ----
+    for r, m in donation_requests:
+        writer.writerow({"Record Type": "Donation Request","Member ID": m.member_id,"Member Name": m.name,"Transaction ID": r.transaction_id,"Amount": float(r.amount),"Donation Type": r.donation_type,"Payment Method": r.payment_method,"Message": r.message,"Status": r.status,"Created At": r.created_at.strftime("%Y-%m-%d %H:%M:%S"),"Updated At": r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else "","Updated By": r.updated_by or "","Admin Note": r.admin_note or "",})
+
+    # ---- Loan Transactions ----
+    for t, l, m in loan_txns:
+        writer.writerow({"Record Type": "Loan Transaction","Member ID": m.member_id,"Member Name": m.name,"Loan ID": l.loan_id,"Transaction ID": t.transaction_id,"Transaction Type": t.transaction_type,"Amount": float(t.amount),"Created At": t.created_at.strftime("%Y-%m-%d %H:%M:%S"),})
+
+    # ---- Loan Repayment Requests ----
+    for rr, l, m in repay_requests:
+        writer.writerow({"Record Type": "Loan Repayment Request","Member ID": m.member_id,"Member Name": m.name,"Loan ID": l.loan_id,"Amount": float(rr.amount),"Payment Method": rr.payment_method,"Transaction ID": rr.transaction_id,"Message": rr.message,"Status": rr.status,"Created At": rr.created_at.strftime("%Y-%m-%d %H:%M:%S"),"Updated At": rr.updated_at.strftime("%Y-%m-%d %H:%M:%S") if rr.updated_at else "","Updated By": rr.updated_by or "","Admin Note": rr.admin_note or "",})
+
+    output = Response(
+        si.getvalue(),
+        mimetype="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": "attachment; filename=full_fund_history.csv"
+        },
+    )
+    return output

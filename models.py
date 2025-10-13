@@ -63,7 +63,7 @@ class LoanTransaction(db.Model):
     transaction_type = db.Column(db.String(10), nullable=False)  
     amount = db.Column(db.Numeric(12, 2), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
     loan = db.relationship("Loan", back_populates="transactions")
 
 class LoanApplication(db.Model):

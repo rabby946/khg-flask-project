@@ -114,28 +114,22 @@ def loan_management():
         return redirect(url_for("loanmanagement.loan_management"))
     return render_template("admin/loan_management.html", members=members, loans=loans)
 
-
 @loanmanagement_app.route("/loan_repayment_requests", methods=["GET", "POST"])
 @admin_required
 def loan_repayment_requests():
     if request.method == "POST":
         req_id = request.form.get("request_id")
-        action = request.form.get("action")  # accept / reject
+        action = request.form.get("action")  
         admin_note = request.form.get("admin_note", "").strip() or "N/A"
-
         repayment_request = LoanRepaymentRequest.query.get(req_id)
         if not repayment_request or repayment_request.status != "Pending":
             flash("Repayment request not found.", "danger")
             return redirect(url_for("loanmanagement.loan_repayment_requests"))
-
         loan = Loan.query.get(repayment_request.loan_id)
         member = repayment_request.member
-
         if not loan:
             flash("Associated loan not found.", "danger")
             return redirect(url_for("loanmanagement.loan_repayment_requests"))
-
-        # --- Handle Accept / Reject Logic ---
         if action == "accept":
             repayment_request.status = "Accepted"
             repayment_request.updated_by = session.get("admin_name", "Unknown Admin")
@@ -143,24 +137,25 @@ def loan_repayment_requests():
             repayment_request.updated_at = datetime.utcnow()
             audit = AuditLog(member_id=loan.member_id,admin_id=session.get("admin_id"),action=f"repaid",target_table="loans",target_id=loan.loan_id,amount=repayment_request.amount)
             db.session.add(audit)
-            # Subtract amount from remaining loan
             loan.remaining_amount = float(loan.remaining_amount) - float(repayment_request.amount)
-            if loan.remaining_amount <= 0:
+            if loan.remaining_amount < 0:
+                donation  = Donation(member_id=member.member_id, amount=abs(loan.remaining_amount), donation_type="Extra repayment")
+                db.session.commit(donation)
                 loan.remaining_amount = 0
+                
+            if loan.remaining_amount == 0:
                 loan.status = "Completed"
-
-            # Record loan transaction (optional, if you want to track)
-            transaction = LoanTransaction(
-                loan_id=loan.loan_id,
-                amount=repayment_request.amount,
-                transaction_type="Repayment",
-                created_at=datetime.utcnow()
-            )
+            transaction = LoanTransaction(loan_id=loan.loan_id,amount=repayment_request.amount,transaction_type="repay",created_at=datetime.utcnow())
             db.session.add(transaction)
-
+            notification = Notification( member_id=member.member_id,admin_id=session.get("admin_id"),message=(
+                        f"Your repayment request of {transaction.amount} has been recorded. "
+                        f"Original loan: {loan.approved_amount}, Remaining: {loan.remaining_amount}. "
+                        f"Admin note: {repayment_request.admin_note}"
+                        f"Issued at: {loan.issued_at}"
+                    )
+                )
+            db.session.add(notification)
             db.session.commit()
-
-            # --- Send Email to Member ---
             try:
                 subject = f"Your Loan Repayment Request #{repayment_request.id} Has Been Accepted"
                 message_body = f"""
@@ -177,7 +172,6 @@ def loan_repayment_requests():
                 sendMailhtml(member.email, subject, message_body)
             except Exception as e:
                 print(f"[Email Error] Failed to notify member: {e}")
-
         elif action == "reject":
             repayment_request.status = "Rejected"
             repayment_request.updated_by = session.get("admin_name", "Unknown Admin")
@@ -186,8 +180,15 @@ def loan_repayment_requests():
             
             audit = AuditLog(member_id=loan.member_id,admin_id=session.get("admin_id"),action=f"rejected loan repayment request",target_table="loans",target_id=loan.loan_id,amount=0)
             db.session.add(audit)
+            notification = Notification( member_id=loan.member_id,admin_id=session.get("admin_id"),message=(
+                        f"Your repayment of {repayment_request.amount} has been rejected. "
+                        f"Original loan: {loan.approved_amount}, Remaining: {loan.remaining_amount}. "
+                        f"Admin note: {repayment_request.admin_note}"
+                        f"Issued at: {loan.issued_at}"
+                    )
+                )
+            db.session.add(notification)
             db.session.commit()
-            # --- Notify Member via Email ---
             try:
                 subject = f"Your Loan Repayment Request #{repayment_request.id} Has Been Rejected"
                 message_body = f"""
@@ -201,14 +202,10 @@ def loan_repayment_requests():
                 sendMailhtml(member.email, subject, message_body)
             except Exception as e:
                 print(f"[Email Error] Failed to notify member: {e}")
-
         else:
             flash("Invalid action.", "danger")
             return redirect(url_for("loanmanagement.loan_repayment_requests"))
-
         flash(f"Loan repayment request #{req_id} has been {repayment_request.status.lower()}.", "success")
         return redirect(url_for("loanmanagement.loan_repayment_requests"))
-
-    # --- Display All Requests ---
     requests = LoanRepaymentRequest.query.order_by(LoanRepaymentRequest.created_at.desc()).all()
     return render_template("admin/loan_repayment_requests.html", requests=requests, Member=Member)

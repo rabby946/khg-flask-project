@@ -47,13 +47,12 @@ def set_for_voting(application_id):
 
     # Create a VoteItem for this loan
     vote_item = VoteItem(title=f"Loan Approval for {application.member.name}",description=f"Loan requested: {application.amount_requested}\nCause: {application.cause or 'Not specified'}",created_at=datetime.utcnow(),application_id=application.application_id)
-    cur_admin = Admin.query.get_or_404(session.get("admin_id"))
     member = Member.query.get_or_404(application.member_id)  
     body = f"""
         <p>Dear {member.name},</p>
         <p>We would like to inform you that your <strong>Loan Application</strong> has been 
         moved to the <strong>voting stage</strong>. This means our community members 
-        will now review and vote on your request.</p>
+        will now review and vote on your request. Check <a href = "https://khg-bd.onrender.com/member/voting"> here </a></p>
 
         <p><strong>Application Details:</strong></p>
         <ul>
@@ -62,18 +61,33 @@ def set_for_voting(application_id):
             <li><b>Status:</b> Voting</li>
         </ul>
 
-        <p>You will be notified as soon as the voting process is complete 
-        and a decision has been made.</p>
+        <p>You will be notified as soon as the voting process is complete and a decision has been made.</p>
 
         <p>Thank you for being part of <strong>KHG</strong>.</p>
     """
+    notification = Notification( member_id=member.member_id,admin_id=session.get("admin_id"),message=(
+                        f"We would like to inform you that your Loan Application has been moved to the voting stage. This means our community members will now review and vote on your request."
+                        f"Amount requested: {application.amount_requested}, Cause: {application.cause}. "
+                    )
+                )
+    allmember = Member.query.all()
+    for man in allmember:
+        newbody = f"""
+            <p>Dear {man.name},</p>
+            <p>We would like to inform you that A new loan application is set for voting. Please help admin to take descision by showing your interest on this item. Please vote here:  <a href = "https://khg-bd.onrender.com/member/voting"> here </a></p>
+            
+            <p><strong>Application Details:</strong></p>
+            <ul>
+                <li><b>Requested Amount:</b> {application.amount_requested}</li>
+                <li><b>Cause:</b> {application.cause or 'Not specified'}</li>
+                <li><b>Status:</b> Voting</li>
+            </ul>
+            <p>Thank you for being part of <strong>KHG</strong>.</p>
+        """
+        sendMailhtml(man.email,"Your Loan Application is Now in Voting",newbody)
 
-    # Send HTML mail
-    sendMailhtml(
-        member.email,
-        "Your Loan Application is Now in Voting",
-        body
-    )
+    db.session.add(notification)
+    sendMailhtml(member.email,"Your Loan Application is Now in Voting",body)
     try:
         db.session.add(vote_item)
         db.session.commit()
@@ -98,13 +112,10 @@ def accept_loan(application_id):
     # Transaction
     tx = LoanTransaction(loan_id=loan.loan_id,transaction_type="borrow",amount=application.amount_requested,created_at=datetime.utcnow())
     db.session.add(tx)
-    # Update application metadata
     application.status = "approved"
     application.reviewed_by = session.get("admin_id")
     application.reviewed_at = datetime.utcnow()
-    # Delete vote_item tied to this application (if exists)
     vote_item = VoteItem.query.filter_by(application_id=application.application_id).first()
-    # Audit log
     log = AuditLog(admin_id=session.get("admin_id"),member_id=application.member_id,action=f"Accepted loan application ID {application.application_id}",target_table="loans",target_id=application.application_id,amount=tx.amount,created_at=datetime.utcnow())
     db.session.add(log)
     cur_admin = Admin.query.get_or_404(session.get("admin_id"))
@@ -127,16 +138,20 @@ def accept_loan(application_id):
         {cur_admin.role}, KHG</p>
     """
     sendMailhtml(member.email,"Your Loan Application has been Approved",body)
+    notification = Notification( member_id=member.member_id,admin_id=session.get("admin_id"),message=(
+                        f"We are pleased to inform you that your Loan Application has been approved by our committee"
+                        f"Amount requested: {application.amount_requested}, Cause: {application.cause}."
+                    )
+                )
+    db.session.add(notification)
     try:
         db.session.commit()
         flash("Loan accepted and issued to member.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error approving loan: {str(e)}", "danger")
-
     return redirect(url_for("loanapplication.loan_application_details", application_id=application.application_id))
 
-# Reject / Delete application
 @loan_app.route("/delete/<int:application_id>", methods=["POST"])
 @admin_required
 def delete_loan_application(application_id):
@@ -144,6 +159,12 @@ def delete_loan_application(application_id):
     member_id = application.member_id
     cur_admin = Admin.query.get_or_404(session.get("admin_id"))
     member = Member.query.get_or_404(member_id)  
+    notification = Notification( member_id=member.member_id,admin_id=session.get("admin_id"),message=(
+                        f"We regret to inform you that your Loan Application has been Rejected by our committee"
+                        f"Amount requested: {application.amount_requested}, Cause: {application.cause}."
+                    )
+                )
+    db.session.add(notification)
     body = f"""
         <p>Dear {member.name},</p>
         <p>We regret to inform you that your <strong>Loan Application</strong> has been <strong>rejected</strong> after careful consideration.</p>

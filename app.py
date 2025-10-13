@@ -4,14 +4,10 @@ from flask import Flask
 from flask_migrate import Migrate
 from extensions import db
 from config import Config
-from routes.public import public_app
-from routes.admin import admin_app
-from routes.member import member_app
-from routes.superAdmin import superadmin_app
-from routes.loanmanagement import loanmanagement_app
-from routes.donationmanagement import donationmanagement_app
-from routes.membermanagement import membermanagement_app
-from routes.loanapplication import loan_app
+from routes import (
+    public_app, admin_app, member_app, superadmin_app,
+    loan_app, loanmanagement_app, donationmanagement_app, membermanagement_app
+)
 
 load_dotenv()
 migrate = Migrate() 

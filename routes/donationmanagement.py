@@ -49,6 +49,13 @@ def add_donation():
             {cur_admin.role}, KHG</p>
         """
         sendMailhtml(member.email, "Donation has been recieved", body)
+        notification = Notification(
+            member_id=member_id,
+            admin_id=session.get("admin_id"),
+            message=f"Your donation request amount {amount} has been added. Doantion type = '{donation_type}'"
+        )
+        db.session.add(notification)
+
         flash("Donation added successfully.", "success")
         return redirect(url_for("admin.add_donation"))
     return render_template("admin/add_donation.html", members=members, donations=donations)
@@ -58,7 +65,7 @@ def add_donation():
 def donation_requests():
     if request.method == "POST":
         req_id = request.form.get("request_id")
-        action = request.form.get("action")  #accept / reject
+        action = request.form.get("action")  
         admin_note = request.form.get("admin_note", "").strip() or "N/A"
 
         donation_request = DonationRequest.query.get(req_id)
@@ -101,7 +108,14 @@ def donation_requests():
         donation_request.updated_by = cur_admin.full_name
         donation_request.admin_note = admin_note
         donation_request.updated_at = datetime.utcnow()
+        notification = Notification(
+            member_id=donation_request.member_id,
+            admin_id=session.get("admin_id"),
+            message=f"Your donation request amount {donation_request.amount} has been {action}. Admin note = '{admin_note}'"
+        )
+        db.session.add(notification)
 
+        db.session.add(notification)
         db.session.commit()
         flash(f"Donation request #{req_id} has been {donation_request.status.lower()}.", "success")
         return redirect(url_for("admin.donation_requests"))

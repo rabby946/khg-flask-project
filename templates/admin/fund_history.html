@@ -25,8 +25,10 @@
 
     .page-header {
         display: flex;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
         margin-bottom: 2rem;
     }
     .page-title {
@@ -43,7 +45,6 @@
         background-color: #0baccc;
     }
 
-    /* Collapsible Filter Panel */
     .filter-card {
         background-color: var(--fh-card-bg);
         border: 1px solid var(--fh-border);
@@ -72,20 +73,15 @@
         height: 100%;
     }
 
-    /* Main Data Table Card */
     .data-table-card {
         background-color: var(--fh-card-bg);
         border: 1px solid var(--fh-border);
         border-radius: 1rem;
         box-shadow: var(--fh-shadow);
-        overflow: hidden; /* Important for border radius on table */
+        overflow: hidden;
     }
-    .data-table-card .card-body {
-        padding: 0;
-    }
-    .table {
-        margin-bottom: 0;
-    }
+    .data-table-card .card-body { padding: 0; }
+    .table { margin-bottom: 0; }
     .table th {
         font-weight: 600;
         color: var(--fh-text-light);
@@ -100,9 +96,7 @@
         vertical-align: middle;
         font-weight: 500;
     }
-    .table tbody tr:last-child td {
-        border-bottom: none;
-    }
+    .table tbody tr:last-child td { border-bottom: none; }
     .amount-in { color: var(--fh-success); }
     .amount-out { color: var(--fh-danger); }
 </style>
@@ -110,7 +104,9 @@
 <div class="fund-history-container">
     <div class="page-header">
         <h2 class="page-title">Fund History</h2>
-        <a href="#" class="btn export-btn"><i class="fas fa-file-export me-2"></i>Export as CSV</a>
+        <a href="{{ url_for('admin.export_full_fund_history', member_id=member_id, sort=sort_order, type=fund_type) }}" class="btn export-btn">
+            <i class="fas fa-file-excel me-2"></i>Export User's Results
+        </a>
     </div>
 
     <div class="accordion" id="filterAccordion">
@@ -139,17 +135,17 @@
                                 <option value="loan_repay" {% if fund_type=="loan_repay" %}selected{% endif %}>Loan Repayments</option>
                             </select>
                         </div>
+                        
                         <div class="col-md-4">
-                            <label class="form-label">Member</label>
-                            <select name="member_id" class="form-select">
-                                <option value="all" {% if member_id=="all" %}selected{% endif %}>All Members</option>
+                            <label for="member-search" class="form-label">Member</label>
+                            <input class="form-control" list="members-list" id="member-search" name="member_name" placeholder="Type to search for a member..." value="{{ member_name or '' }}">
+                            <datalist id="members-list">
+                                <option value="all">All Members</option>
                                 {% for m in members %}
-                                <option value="{{m.member_id}}" {% if member_id|string == m.member_id|string %}selected{% endif %}>
-                                    {{ m.name }}
-                                </option>
+                                    <option value="{{ m.name }}">
                                 {% endfor %}
-                            </select>
-                        </div>
+                            </datalist>
+                             </div>
                         <div class="col-md-2 d-flex align-items-end">
                             <button class="btn btn-primary w-100">Apply Filter</button>
                         </div>
@@ -178,12 +174,9 @@
                             <td class="p-3">{{ r.date.strftime('%d %b %Y, %I:%M %p') }}</td>
                             <td class="p-3">{{ r.member_name }}</td>
                             <td class="p-3">
-                                {% if r.category == "donation" %}
-                                    <span class="badge text-bg-success">Donation</span>
-                                {% elif r.category == "borrow" %}
-                                    <span class="badge text-bg-danger">Loan Given</span>
-                                {% elif r.category == "repay" %}
-                                    <span class="badge text-bg-primary">Loan Repay</span>
+                                {% if r.category == "donation" %}<span class="badge text-bg-success">Donation</span>
+                                {% elif r.category == "borrow" %}<span class="badge text-bg-danger">Loan Given</span>
+                                {% elif r.category == "repay" %}<span class="badge text-bg-primary">Loan Repay</span>
                                 {% endif %}
                             </td>
                             <td class="p-3 text-muted">{{ r.subtype }}</td>
