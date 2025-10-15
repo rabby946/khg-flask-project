@@ -44,8 +44,7 @@ def apply_membership():
         occupation = request.form.get('occupation')
         dob = request.form.get('dob')  
         nid = request.form.get('nid')
-        fle = request.files.get('oath_paper_url')
-        oath_paper_url = upload_to_imgbb(fle)
+        
         password = request.form.get('password')
         file = request.files.get('photo_url')
         photo_url = upload_to_imgbb(file)
@@ -76,7 +75,7 @@ def apply_membership():
         if nid_exists:
             flash("NID already in use by another member.", "danger")
             return redirect(url_for("public.apply_membership"))
-        application = MembershipApplication(name=full_name,father_name=father_name,email=email,phone=phone,address=address,occupation=occupation,date_of_birth=date_of_birth,nid=nid,oath_paper_url=oath_paper_url,photo_url=photo_url,password_hash=password)
+        application = MembershipApplication(name=full_name,father_name=father_name,email=email,phone=phone,address=address,occupation=occupation,date_of_birth=date_of_birth,nid=nid,oath_paper_url="oath_paper_url",photo_url=photo_url,password_hash=password)
         db.session.add(application)
         db.session.commit()
         html_body = render_template("emails/apply_email.html",application=application,sender_name=current_app.config["BREVO_SENDER_NAME"])

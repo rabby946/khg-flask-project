@@ -157,7 +157,7 @@ def reject_membership(app_id):
         it has been <strong>rejected</strong> at this time.</p>
         
         <p>If you believe this was a mistake or wish to reapply, 
-        please feel free to contact our office for further clarification.</p>
+        please feel free to contact us for further clarification.</p>
 
         <p>We truly appreciate your effort and encourage you to stay connected 
         with our community for future opportunities.</p>

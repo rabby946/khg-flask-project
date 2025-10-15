@@ -194,7 +194,9 @@
     .form-control.is-invalid { border-color: var(--danger-color); }
     textarea.form-control { min-height: 120px; }
     .invalid-feedback { color: var(--danger-color); font-size: 0.875rem; display: none; margin-top: 0.5rem; }
-    .form-control.is-invalid + .invalid-feedback { display: block; }
+    .form-control.is-invalid + .invalid-feedback, .is-invalid .invalid-feedback { display: block; }
+    .form-check-input.is-invalid ~ .form-check-label { color: var(--danger-color); }
+
 
     .step-navigation {
         display: flex;
@@ -213,6 +215,10 @@
         border: none;
         cursor: pointer;
         transition: all 0.2s ease;
+    }
+    .step-navigation .btn:disabled {
+        cursor: wait;
+        opacity: 0.7;
     }
     
     /* File Uploader */
@@ -239,6 +245,16 @@
     .file-uploader .uploader-initial { display: flex; }
     .file-uploader.is-loading .uploader-initial, .file-uploader.is-success .uploader-initial, .file-uploader.is-error .uploader-initial { display: none; }
     .file-uploader.is-loading .uploader-progress, .file-uploader.is-success .uploader-success, .file-uploader.is-error .uploader-error { display: block; }
+
+    /* Terms and Conditions Checkbox */
+    .form-check-label a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+    .form-check-label a:hover {
+        text-decoration: underline;
+    }
+
 </style>
 
 <div class="apply-page-wrapper">
@@ -340,34 +356,20 @@
                             <h2>Finalize your account</h2>
                             <p>Upload your documents and create a secure password.</p>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Your Recent Photo <span style="color:red;">*</span></label>
-                                <div class="file-uploader" id="photo-uploader">
-                                    <input type="file" class="file-input" name="photo_url" required accept="image/*">
-                                    <div class="uploader-content">
-                                        <div class="uploader-initial"><i class="fas fa-camera-retro"></i><span>Upload Photo</span></div>
-                                        <div class="uploader-progress">Uploading...</div>
-                                        <div class="uploader-success"></div>
-                                        <div class="uploader-error"></div>
-                                    </div>
+                        <div class="form-group col-full">
+                            <label class="form-label">Your Recent Photo <span style="color:red;">*</span></label>
+                            <div class="file-uploader" id="photo-uploader">
+                                <input type="file" class="file-input" name="photo_url" required accept="image/*">
+                                <div class="uploader-content">
+                                    <div class="uploader-initial"><i class="fas fa-camera-retro"></i><span>Upload Photo</span></div>
+                                    <div class="uploader-progress">Uploading...</div>
+                                    <div class="uploader-success"></div>
+                                    <div class="uploader-error"></div>
                                 </div>
-                                <div class="invalid-feedback">Photo is required.</div>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Scanned Oath Paper <span style="color:red;">*</span></label>
-                                <div class="file-uploader" id="oath-uploader">
-                                    <input type="file" class="file-input" name="oath_paper_url" required accept="image/*,application/pdf">
-                                    <div class="uploader-content">
-                                         <div class="uploader-initial"><i class="fas fa-file-signature"></i><span>Upload Document</span></div>
-                                        <div class="uploader-progress">Uploading...</div>
-                                        <div class="uploader-success"></div>
-                                        <div class="uploader-error"></div>
-                                    </div>
-                                </div>
-                                <div class="invalid-feedback">Oath paper is required.</div>
-                            </div>
+                            <div class="invalid-feedback">Photo is required.</div>
                         </div>
+                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="password" class="form-label">Create Password <span style="color:red;">*</span></label>
@@ -380,9 +382,20 @@
                                 <div class="invalid-feedback">Please confirm your password.</div>
                             </div>
                         </div>
+
+                        <div class="form-group col-full">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="terms" name="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    I agree to the <a href="{{ url_for('public.terms') }}" target="_blank">Terms and Conditions</a>
+                                </label>
+                                <div class="invalid-feedback">You must agree to the terms and conditions.</div>
+                            </div>
+                        </div>
+
                         <div class="step-navigation">
                             <button type="button" class="btn btn-secondary" data-action="prev">Back</button>
-                            <button type="submit" class="btn btn-primary">Submit Application</button>
+                            <button type="submit" id="submit-btn" class="btn btn-primary">Submit Application</button>
                         </div>
                     </div>
                 </div>
@@ -393,8 +406,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // This script is largely the same, but selectors are updated
-    // and validation display logic is slightly different.
     const form = document.getElementById('applicationForm');
     const steps = Array.from(form.querySelectorAll('.form-step'));
     const progressSteps = Array.from(document.querySelectorAll('#progress-steps .stepper-step'));
@@ -406,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const exitingStep = steps[currentStep];
         exitingStep.classList.add('exiting');
         
-        // Wait for exit animation before showing new step
         setTimeout(() => {
             exitingStep.classList.remove('active', 'exiting');
             
@@ -435,25 +445,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         inputs.forEach(input => {
             let isInputValid = true;
-            if (input.type === 'file') {
-                if (input.files.length === 0) isInputValid = false;
-            } else if (!input.value.trim()) {
-                isInputValid = false;
+
+            // MODIFICATION: Added validation for checkbox
+            if (input.type === 'checkbox') {
+                isInputValid = input.checked;
+            } else if (input.type === 'file') {
+                isInputValid = input.files.length > 0;
+            } else {
+                isInputValid = input.value.trim() !== '';
             }
+
+            // Toggle invalid classes
+            const formGroup = input.closest('.form-group, .form-check');
+            const feedback = formGroup.querySelector('.invalid-feedback');
 
             if (!isInputValid) {
                 input.classList.add('is-invalid');
-                if(input.type === 'file') {
+                if (input.type === 'file') {
                     input.closest('.file-uploader').classList.add('is-invalid');
-                    input.closest('.form-group').querySelector('.invalid-feedback').style.display = 'block';
                 }
+                if (feedback) feedback.style.display = 'block';
                 isStepValid = false;
             } else {
                 input.classList.remove('is-invalid');
-                 if(input.type === 'file') {
+                 if (input.type === 'file') {
                     input.closest('.file-uploader').classList.remove('is-invalid');
-                    input.closest('.form-group').querySelector('.invalid-feedback').style.display = 'none';
                 }
+                if (feedback) feedback.style.display = 'none';
             }
         });
         return isStepValid;
@@ -469,28 +487,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // MODIFICATION: Updated submit handler for duplicate prevention
     form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Always prevent default to handle validation and submission manually
+
+        // Validate all fields in the final step
         if (!validateStep(currentStep)) {
-            e.preventDefault();
-            return;
+            return; // Stop if validation fails
         }
 
         const password = form.querySelector('#password');
         const confirmPassword = form.querySelector('#confirm_password');
+        let finalValidation = true;
+
+        // Check password confirmation
         if (password.value !== confirmPassword.value) {
-            e.preventDefault();
             confirmPassword.classList.add('is-invalid');
             const feedback = confirmPassword.nextElementSibling;
-            if(feedback) {
+            if (feedback) {
                 feedback.style.display = 'block';
                 feedback.textContent = 'Passwords do not match.';
             }
+            finalValidation = false;
         } else {
             confirmPassword.classList.remove('is-invalid');
         }
+
+        // If all final validations pass, proceed to submit
+        if (finalValidation) {
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `Submitting... <i class="fas fa-spinner fa-spin"></i>`;
+            
+            // Programmatically submit the form
+            form.submit();
+        }
     });
 
-    // File Uploader Logic
+    // File Uploader Logic (mostly unchanged, but kept for the photo)
     document.querySelectorAll('.file-uploader').forEach(uploader => {
         const fileInput = uploader.querySelector('.file-input');
         const contentDiv = uploader.querySelector('.uploader-content');
@@ -512,8 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let previewHTML = '';
             if (file.type.startsWith('image/')) {
                 previewHTML = `<div class="file-info"><i class="fas fa-check-circle"></i><span>${file.name}</span></div>`;
-            } else {
-                previewHTML = `<div class="file-info"><i class="fas fa-file-alt"></i><span>${file.name}</span></div>`;
             }
             contentDiv.querySelector('.uploader-success').innerHTML = `${previewHTML}<button type="button" class="remove-btn">&times;</button>`;
         });
