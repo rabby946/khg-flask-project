@@ -147,8 +147,7 @@ def reject_membership(app_id):
         flash("This application has already been reviewed.", "warning")
         return redirect(url_for("membermanagement.memberships"))
     app.status = "rejected"
-    log = AuditLog(admin_id=session.get("admin_id"),action=f"Rejected membership application of {app.name}, nid={app.nid}",target_table="membership_applications",target_id=app.id,amount=0)
-    db.session.add(log)
+    
     cur_admin = Admin.query.get_or_404(session.get("admin_id"))
     body = f"""
         <p>Dear {app.name},</p>

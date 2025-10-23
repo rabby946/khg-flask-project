@@ -118,7 +118,6 @@ def donation_requests():
         db.session.add(notification)
         db.session.commit()
         flash(f"Donation request #{req_id} has been {donation_request.status.lower()}.", "success")
-        return redirect(url_for("admin.donation_requests"))
 
     requests = DonationRequest.query.order_by(DonationRequest.created_at.desc()).all()
     return render_template("admin/donation_requests.html", requests=requests)
