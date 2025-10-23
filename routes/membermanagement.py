@@ -1,6 +1,6 @@
 from flask import redirect, url_for, render_template, flash, request, session, Blueprint, current_app
 from utils import admin_required, _send_async_email, upload_to_imgbb, sendMailhtml1
-from models import  db, Admin,  Member, MembershipApplication, AuditLog
+from models import  db, Admin,  Member, MembershipApplication, AuditLog, Loan, Donation, Notification, Vote, LoanRepaymentRequest, DonationRequest, LoanApplication, LoanTransaction
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import  datetime
 import threading
@@ -82,27 +82,56 @@ def edit_member(member_id):
 def delete_member(member_id):
     member = Member.query.get_or_404(member_id)
     cur_admin = Admin.query.get_or_404(session.get("admin_id"))
-    # Delete related loans & donations
-    for loan in member.loans:
-        db.session.delete(loan)
-    for donation in member.donations:
-        db.session.delete(donation)
 
-    db.session.delete(member)
-    db.session.commit()
-    flash(f"Member {member.name} deleted permanently.", "success")
-    body = f"""
-        <p>Dear {member.name},</p>
-        <p>We regret to inform you that your membership with <strong>KHG</strong> has been cancelled and all associated records have been removed from our system.</p>
-        <p>If you believe this action was made in error or wish to discuss this matter, please reach out to us through our contact page:</p>
-        <p><a href="https://khg-bd.onrender.com/contact">Contact Korje Hasanah Group</a></p>
-        <p>Thank you for being part of our community.</p>
-        <p>From,<br>
-        {cur_admin.full_name}<br>
-        {cur_admin.role}, KHG</p>
-    """
-    sendMailhtml(member.email, "Membership Cancellation Notice", body)
+    try:
+        # STEP 1: Delete all dependent records that reference this member
+
+        # Loan repayment requests → depend on loan_id (NOT NULL)
+        LoanRepaymentRequest.query.filter_by(member_id=member_id).delete()
+
+        # Loan transactions → depend on loan_id
+        for loan in member.loans:
+            LoanTransaction.query.filter_by(loan_id=loan.loan_id).delete()
+
+        # Loans (after transactions + repayments)
+        Loan.query.filter_by(member_id=member_id).delete()
+
+        # Donations and donation requests
+        Donation.query.filter_by(member_id=member_id).delete()
+        DonationRequest.query.filter_by(member_id=member_id).delete()
+
+        # Notifications, votes, loan applications, and audit logs
+        Notification.query.filter_by(member_id=member_id).delete()
+        Vote.query.filter_by(member_id=member_id).delete()
+        LoanApplication.query.filter_by(member_id=member_id).delete()
+        AuditLog.query.filter_by(member_id=member_id).delete()
+
+        # STEP 2: Delete the member record itself
+        db.session.delete(member)
+
+        # Commit all deletions
+        db.session.commit()
+
+        # STEP 3: Send cancellation email
+        flash(f"Member {member.name} deleted permanently.", "success")
+        body = f"""
+            <p>Dear {member.name},</p>
+            <p>We regret to inform you that your membership with <strong>KHG</strong> has been cancelled and all associated records have been removed from our system.</p>
+            <p>If you believe this action was made in error or wish to discuss this matter, please reach out to us through our contact page:</p>
+            <p><a href="https://khg-bd.onrender.com/contact">Contact Korje Hasanah Group</a></p>
+            <p>Thank you for being part of our community.</p>
+            <p>From,<br>
+            {cur_admin.full_name}<br>
+            {cur_admin.role}, KHG</p>
+        """
+        sendMailhtml(member.email, "Membership Cancellation Notice", body)
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting member: {str(e)}", "danger")
+
     return redirect(url_for("membermanagement.manage_members"))
+
 
 @membermanagement_app.route("/memberships")
 @admin_required
