@@ -5,11 +5,12 @@ from flask import g
 from functools import wraps
 from flask import current_app, session, flash, redirect, url_for, request
 from models import Member
+
+
 import cloudinary
 import  sib_api_v3_sdk
 import cloudinary
 import cloudinary.uploader
-import cloudinary.api
 cloudinary.config(
     cloud_name=Config.CLOUD_NAME,
     api_key=Config.CLOUD_API_KEY,
@@ -30,7 +31,9 @@ def _send_async_email(app, recipient, subject, body, html=False):
                 "name": app.config["BREVO_SENDER_NAME"],
                 "email": app.config["BREVO_SENDER_EMAIL"],
             }
-            send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=[{"email": r} for r in recipient],subject=subject,sender=sender,html_content=body if html else f"<p>{body}</p>",text_content=None if html else body,)
+            send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=[{"email": r} for r in recipient],
+                                                           subject=subject,sender=sender,html_content=body if html else f"<p>{body}</p>",
+                                                           text_content=None if html else body,)
             api_instance.send_transac_email(send_smtp_email)
             app.logger.info(f"Brevo email sent to {recipient}")
         except Exception as e:
@@ -40,14 +43,16 @@ def sendMail(recipient, subject, body):
     if not isinstance(recipient, list):
         recipient = [recipient]
     app = current_app._get_current_object()
-    threading.Thread(target=_send_async_email,args=(app, recipient, subject, body, False),daemon=True,).start()
+    threading.Thread(target=_send_async_email,
+                     args=(app, recipient, subject, body, False),daemon=True,).start()
 
 def sendMailhtml1(recipient, subject, html_body):
     """Send HTML email asynchronously via Brevo API."""
     if not isinstance(recipient, list):
         recipient = [recipient]
     app = current_app._get_current_object()
-    threading.Thread(target=_send_async_email,args=(app, recipient, subject, html_body, True),daemon=True,).start()
+    threading.Thread(target=_send_async_email,
+                     args=(app, recipient, subject, html_body, True),daemon=True,).start()
 
 def admin_required(view):
     @wraps(view)

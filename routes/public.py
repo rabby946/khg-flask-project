@@ -154,4 +154,3 @@ def reset_password(token):
         return redirect(url_for("public.login"))
     return render_template("public/reset_password.html", token=token)
 
-

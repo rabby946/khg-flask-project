@@ -191,7 +191,6 @@ def export_full_fund_history():
     member_id = request.args.get("member_id", "all")
     sort_order = request.args.get("sort", "desc")
 
-    # Base queries
     donations = (
         db.session.query(Donation, Member)
         .join(Member, Donation.member_id == Member.member_id)
@@ -211,14 +210,12 @@ def export_full_fund_history():
         .join(Member, LoanRepaymentRequest.member_id == Member.member_id)
     )
 
-    # Filtering by member (if needed)
     if member_id != "all":
         donations = donations.filter(Donation.member_id == int(member_id))
         donation_requests = donation_requests.filter(DonationRequest.member_id == int(member_id))
         loan_txns = loan_txns.filter(Loan.member_id == int(member_id))
         repay_requests = repay_requests.filter(LoanRepaymentRequest.member_id == int(member_id))
 
-    # Sorting (newest first)
     if sort_order == "asc":
         donations = donations.order_by(Donation.donated_at.asc())
         donation_requests = donation_requests.order_by(DonationRequest.created_at.asc())
@@ -230,24 +227,19 @@ def export_full_fund_history():
         loan_txns = loan_txns.order_by(LoanTransaction.created_at.desc())
         repay_requests = repay_requests.order_by(LoanRepaymentRequest.created_at.desc())
 
-    # Prepare output
     si = StringIO()
     writer = csv.DictWriter(si, fieldnames=CSV_COLUMNS)
     writer.writeheader()
 
-    # ---- Donations ----
     for d, m in donations:
         writer.writerow({"Record Type": "Donation","Member ID": m.member_id,"Member Name": m.name,"Donation ID": d.donation_id,"Amount": float(d.amount),"Donation Type": d.donation_type,"Created At": d.donated_at.strftime("%Y-%m-%d %H:%M:%S"),})
 
-    # ---- Donation Requests ----
     for r, m in donation_requests:
         writer.writerow({"Record Type": "Donation Request","Member ID": m.member_id,"Member Name": m.name,"Transaction ID": r.transaction_id,"Amount": float(r.amount),"Donation Type": r.donation_type,"Payment Method": r.payment_method,"Message": r.message,"Status": r.status,"Created At": r.created_at.strftime("%Y-%m-%d %H:%M:%S"),"Updated At": r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else "","Updated By": r.updated_by or "","Admin Note": r.admin_note or "",})
 
-    # ---- Loan Transactions ----
     for t, l, m in loan_txns:
         writer.writerow({"Record Type": "Loan Transaction","Member ID": m.member_id,"Member Name": m.name,"Loan ID": l.loan_id,"Transaction ID": t.transaction_id,"Transaction Type": t.transaction_type,"Amount": float(t.amount),"Created At": t.created_at.strftime("%Y-%m-%d %H:%M:%S"),})
 
-    # ---- Loan Repayment Requests ----
     for rr, l, m in repay_requests:
         writer.writerow({"Record Type": "Loan Repayment Request","Member ID": m.member_id,"Member Name": m.name,"Loan ID": l.loan_id,"Amount": float(rr.amount),"Payment Method": rr.payment_method,"Transaction ID": rr.transaction_id,"Message": rr.message,"Status": rr.status,"Created At": rr.created_at.strftime("%Y-%m-%d %H:%M:%S"),"Updated At": rr.updated_at.strftime("%Y-%m-%d %H:%M:%S") if rr.updated_at else "","Updated By": rr.updated_by or "","Admin Note": rr.admin_note or "",})
 
